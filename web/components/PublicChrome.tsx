@@ -15,7 +15,7 @@ export default function PublicChrome({ children }: { children: React.ReactNode }
   return (
     <>
       <Navbar />
-      <main style={{ flex: 1, paddingTop: '64px' }}>{children}</main>
+      <main style={{ flex: 1 }}>{children}</main>
       <Footer />
     </>
   );

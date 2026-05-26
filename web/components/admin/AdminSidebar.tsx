@@ -11,6 +11,7 @@ import {
   BarChart2,
   LogOut,
   ChevronRight,
+  Settings,
 } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase-admin';
 
@@ -21,6 +22,7 @@ const NAV = [
   { href: '/admin/team',      label: 'Team',       icon: Users },
   { href: '/admin/contacts',  label: 'Contacts',   icon: Mail },
   { href: '/admin/analytics', label: 'Analytics',  icon: BarChart2 },
+  { href: '/admin/settings',  label: 'Settings',   icon: Settings },
 ];
 
 export default function AdminSidebar() {
@@ -92,19 +94,20 @@ export default function AdminSidebar() {
             <Link
               key={href}
               href={href}
+              data-active={active}
+              className="sidebar-nav-link"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.625rem',
                 padding: '9px 12px',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 fontSize: '0.875rem',
                 fontWeight: 500,
                 textDecoration: 'none',
                 color: active ? 'white' : 'rgba(224,216,181,0.65)',
                 background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
-                borderLeft: active ? '3px solid var(--primary)' : '3px solid transparent',
-                transition: 'background 200ms ease, color 200ms ease',
+                borderLeft: active ? '3px solid var(--primary-light)' : '3px solid transparent',
               }}
             >
               <Icon size={16} strokeWidth={active ? 2 : 1.75} />

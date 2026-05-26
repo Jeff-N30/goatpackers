@@ -70,7 +70,7 @@ export default function Footer() {
                 <InstagramIcon />
               </a>
               <a
-                href="mailto:goatpacker.lb@gmail.com"
+                href="mailto:goatpackers.lb@gmail.com"
                 aria-label="Email"
                 style={socialStyle}
               >
@@ -105,9 +105,9 @@ export default function Footer() {
                 <InstagramIcon />
                 <span>@goatpackers.lb</span>
               </a>
-              <a href="mailto:goatpacker.lb@gmail.com" style={{ ...row, textDecoration: 'none' }}>
+              <a href="mailto:goatpackers.lb@gmail.com" style={{ ...row, textDecoration: 'none' }}>
                 <Mail size={14} strokeWidth={1.75} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span>goatpacker.lb@gmail.com</span>
+                <span>goatpackers.lb@gmail.com</span>
               </a>
             </div>
           </div>

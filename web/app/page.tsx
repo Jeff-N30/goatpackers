@@ -1,5 +1,8 @@
-import { ArrowRight, Mountain, Users, MapPin, Award, Calendar, Clock, TrendingUp } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 import ScrollReveal from '@/components/ScrollReveal';
+import EventsSection from '@/components/EventsSection';
+import GallerySection from '@/components/GallerySection';
+import type { GalleryTile } from '@/components/GallerySection';
 import ContactSection from '@/components/ContactSection';
 import type { HikingEvent, TeamMember } from '@/lib/types';
 
@@ -50,6 +53,21 @@ const UPCOMING: HikingEvent[] = [
     elevation_gain_m: 280,
     created_at: new Date().toISOString(),
   },
+  {
+    id: '7',
+    title: 'Kadisha Valley Trek',
+    description: 'A full traverse of the Holy Valley, past waterfalls, ancient monasteries, and cedars clinging to sheer cliff faces.',
+    date: '2026-07-19',
+    location: 'Bcharre, North Lebanon',
+    difficulty: 'Moderate',
+    image_url: null,
+    type: 'upcoming',
+    max_participants: 22,
+    current_participants: 5,
+    duration_hours: 6,
+    elevation_gain_m: 550,
+    created_at: new Date().toISOString(),
+  },
 ];
 
 const PAST: HikingEvent[] = [
@@ -98,22 +116,31 @@ const PAST: HikingEvent[] = [
     elevation_gain_m: 750,
     created_at: new Date().toISOString(),
   },
+  {
+    id: '8',
+    title: 'Afqa Grotto & Nahr Ibrahim',
+    description: 'A mythological river source walk to the famous Afqa cave, where Adonis River springs from the rock face.',
+    date: '2026-01-18',
+    location: 'Afqa, Jbeil',
+    difficulty: 'Easy',
+    image_url: null,
+    type: 'past',
+    max_participants: 28,
+    current_participants: 24,
+    duration_hours: 3,
+    elevation_gain_m: 180,
+    created_at: new Date().toISOString(),
+  },
 ];
 
-const STATS = [
-  { icon: <Users size={22} strokeWidth={1.75} />, value: '200+', label: 'Active Members' },
-  { icon: <Mountain size={22} strokeWidth={1.75} />, value: '85+', label: 'Trails Explored' },
-  { icon: <MapPin size={22} strokeWidth={1.75} />, value: '6', label: 'Regions Covered' },
-  { icon: <Award size={22} strokeWidth={1.75} />, value: '6', label: 'Years Together' },
-];
 
-const GALLERY_TILES = [
-  { id: 1, span: 'tall',   label: 'Qornet el Sawda Summit' },
-  { id: 2, span: 'wide',   label: 'Chouf Cedar Forest' },
+const FALLBACK_GALLERY_TILES: GalleryTile[] = [
+  { id: 1, span: 'normal', label: 'Qornet el Sawda Summit' },
+  { id: 2, span: 'normal', label: 'Chouf Cedar Forest' },
   { id: 3, span: 'normal', label: 'Wadi Qannoubine' },
   { id: 4, span: 'normal', label: 'Sunset over Bcharre' },
-  { id: 5, span: 'wide',   label: 'Cedar of God' },
-  { id: 6, span: 'tall',   label: 'Horsh Ehden Wildflowers' },
+  { id: 5, span: 'normal', label: 'Cedar of God' },
+  { id: 6, span: 'normal', label: 'Horsh Ehden Wildflowers' },
   { id: 7, span: 'normal', label: 'Mountain Fog' },
   { id: 8, span: 'normal', label: 'Trail to Ehden' },
 ];
@@ -130,54 +157,66 @@ const GRADIENTS = [
 ];
 
 const TEAM: TeamMember[] = [
-  { id: '1', name: 'Placeholder Name', role: 'Founder & Lead Guide',   bio: 'Passionate about Lebanese mountains since childhood. Has summited every major peak in the country multiple times.', image_url: null, order: 1 },
-  { id: '2', name: 'Placeholder Name', role: 'Trail Coordinator',       bio: 'Manages logistics and scouting for all Goatpackers hikes. Expert in backcountry navigation and wilderness first aid.', image_url: null, order: 2 },
-  { id: '3', name: 'Placeholder Name', role: 'Photography Lead',        bio: 'Captures the spirit of every hike through a lens. Responsible for the gallery and all visual content.', image_url: null, order: 3 },
-  { id: '4', name: 'Placeholder Name', role: 'Community Manager',       bio: 'Keeps the community connected online and offline. Organises social events and manages member relations.', image_url: null, order: 4 },
+  { id: '1', name: 'Jeff Nader', role: 'Founder & Guide',   bio: 'Passionate about Lebanese mountains since childhood. Has summited every major peak in the country multiple times.', image_url: null, order: 1 },
+  { id: '2', name: 'Mary Bark', role: 'Social Media Manager & Coordinator',       bio: 'Manages logistics and scouting for all Goatpackers hikes. Expert in backcountry navigation and wilderness first aid.', image_url: null, order: 2 },
+  { id: '3', name: 'Antoine Saliba', role: 'Guide & Medic',        bio: 'Captures the spirit of every hike through a lens. Responsible for the gallery and all visual content.', image_url: null, order: 3 },
+
 ];
 
 const AVATAR_COLORS = ['#5c6135', '#4a4e28', '#808550', '#6b7040'];
 
-const DIFFICULTY_CLASS: Record<string, string> = {
-  Easy: 'badge-easy', Moderate: 'badge-moderate', Hard: 'badge-hard', Expert: 'badge-expert',
-};
+export default async function HomePage() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data: galleryRows } = await supabase
+    .from('gallery')
+    .select('id, image_url, caption')
+    .order('created_at', { ascending: false })
+    .limit(8);
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-}
+  const GALLERY_TILES: GalleryTile[] = galleryRows && galleryRows.length > 0
+    ? galleryRows.map((row) => ({
+        id: row.id as string,
+        span: 'normal' as const,
+        label: (row.caption as string | null) ?? '',
+        image_url: row.image_url as string | null,
+      }))
+    : FALLBACK_GALLERY_TILES;
 
-export default function HomePage() {
   return (
     <>
       {/* ─── HERO ─── */}
       <section style={{
         minHeight: '100vh',
-        background: 'linear-gradient(150deg, #2d2f1c 0%, var(--secondary) 45%, #5c6135 100%)',
+        backgroundImage: 'url("/background.jpeg")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         position: 'relative', overflow: 'hidden', padding: '120px 24px 100px',
       }}>
-        <div aria-hidden style={{ position: 'absolute', top: '-15%', right: '-8%', width: '640px', height: '640px', background: 'radial-gradient(circle, rgba(128,133,80,0.18) 0%, transparent 68%)', borderRadius: '50%', pointerEvents: 'none' }} />
-        <div aria-hidden style={{ position: 'absolute', bottom: '-12%', left: '-6%', width: '480px', height: '480px', background: 'radial-gradient(circle, rgba(224,216,181,0.07) 0%, transparent 68%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        {/* Dark overlay for text legibility */}
+        <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg, rgba(28,30,15,0.72) 0%, rgba(45,47,28,0.60) 50%, rgba(28,30,15,0.68) 100%)', pointerEvents: 'none' }} />
 
         <div style={{ textAlign: 'center', maxWidth: '780px', position: 'relative', zIndex: 1 }}>
           <div className="hero-badge" style={{ marginBottom: '1.25rem' }}>
             <span style={{ display: 'inline-block', background: 'rgba(224,216,181,0.12)', border: '1px solid rgba(224,216,181,0.25)', borderRadius: '9999px', padding: '5px 18px', fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(224,216,181,0.75)' }}>
-              Lebanon · Est. 2020
+              Lebanon · Est. 2026
             </span>
           </div>
           <h1 className="hero-title" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(3.5rem, 10vw, 8rem)', color: 'white', lineHeight: 1.0, letterSpacing: '-0.01em', marginBottom: '1.5rem' }}>
             Goatpackers
           </h1>
           <p className="hero-subtitle" style={{ fontSize: 'clamp(1rem, 2.2vw, 1.2rem)', color: 'rgba(224,216,181,0.72)', lineHeight: 1.75, margin: '0 auto 2.75rem', maxWidth: '500px' }}>
-            Exploring Lebanon's trails together — from cedar forests and gorges to mountain peaks.
+            We pack with Goats
+            <br />
+              Exploring Lebanon together 
           </p>
           <div className="hero-cta" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="#events" className="btn btn-light">
-              Upcoming Hikes <ArrowRight size={15} strokeWidth={2} />
-            </a>
-            <a href="#contact" className="btn btn-ghost">
-              Join the Club
-            </a>
+            <a href="#events" className="btn btn-light">Upcoming Hikes</a>
+            <a href="#contact" className="btn btn-ghost">Join the Club</a>
           </div>
         </div>
 
@@ -186,129 +225,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── STATS ─── */}
-      <section style={{ background: 'var(--secondary)', padding: '2.75rem 1.5rem' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1.5rem' }}>
-          {STATS.map((s, i) => (
-            <ScrollReveal key={s.label} direction="bottom" delay={((i % 4) + 1) as 1|2|3|4}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ color: 'var(--primary-light)', marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>{s.icon}</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'white', lineHeight: 1, marginBottom: '0.3rem' }}>{s.value}</div>
-                <div style={{ fontSize: '0.72rem', color: 'rgba(224,216,181,0.55)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{s.label}</div>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
-      </section>
+      {/* ─── EVENTS — compact tappable cards, spring modal ─── */}
+      <EventsSection upcoming={UPCOMING} past={PAST} />
 
-      {/* ─── EVENTS ─── */}
-      <section id="events" className="section">
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <ScrollReveal direction="fade">
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary)', display: 'block', marginBottom: '0.5rem' }}>Don't Miss Out</span>
-            </ScrollReveal>
-            <ScrollReveal direction="bottom" delay={1}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem, 4vw, 3rem)', color: 'var(--text)', lineHeight: 1.1 }}>Upcoming Hikes</h2>
-            </ScrollReveal>
-            <ScrollReveal direction="bottom" delay={2}>
-              <p style={{ marginTop: '1rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>Reserve your spot before they fill up.</p>
-            </ScrollReveal>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {UPCOMING.map((event, i) => (
-              <ScrollReveal key={event.id} direction="bottom" delay={((i % 3) + 1) as 1|2|3}>
-                <EventCard event={event} />
-              </ScrollReveal>
-            ))}
-          </div>
-
-          {/* Past events */}
-          <div style={{ marginTop: '5rem' }}>
-            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-              <ScrollReveal direction="fade">
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary)', display: 'block', marginBottom: '0.5rem' }}>Trail History</span>
-              </ScrollReveal>
-              <ScrollReveal direction="bottom" delay={1}>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.6rem, 3.5vw, 2.5rem)', color: 'var(--text)', lineHeight: 1.1 }}>Past Adventures</h2>
-              </ScrollReveal>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {PAST.map((event, i) => (
-                <ScrollReveal key={event.id} direction="bottom" delay={((i % 3) + 1) as 1|2|3}>
-                  <div style={{ opacity: 0.82 }}>
-                    <EventCard event={event} variant="compact" />
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── GALLERY ─── */}
-      <section id="gallery" className="section" style={{ background: 'rgba(92,97,53,0.04)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <ScrollReveal direction="fade">
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary)', display: 'block', marginBottom: '0.5rem' }}>Visual Stories</span>
-            </ScrollReveal>
-            <ScrollReveal direction="bottom" delay={1}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem, 4vw, 3rem)', color: 'var(--text)', lineHeight: 1.1 }}>Through the Lens</h2>
-            </ScrollReveal>
-            <ScrollReveal direction="bottom" delay={2}>
-              <p style={{ marginTop: '1rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>Moments captured on the trails of Lebanon.</p>
-            </ScrollReveal>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gridAutoRows: '220px', gap: '1rem' }}>
-            {GALLERY_TILES.map((tile, i) => (
-              <ScrollReveal key={tile.id} direction="scale" delay={((i % 4) + 1) as 1|2|3|4} className="">
-                <div
-                  className="gallery-tile"
-                  style={{
-                    ...(tile.span === 'tall' ? { gridRow: 'span 2' } : tile.span === 'wide' ? { gridColumn: 'span 2' } : {}),
-                    background: GRADIENTS[i % GRADIENTS.length],
-                    borderRadius: '1rem', position: 'relative', overflow: 'hidden', height: '100%', cursor: 'pointer',
-                  }}
-                >
-                  <div className="gallery-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(45,47,28,0.7) 0%, transparent 50%)', display: 'flex', alignItems: 'flex-end', padding: '1rem', opacity: 0, transition: 'opacity 250ms ease' }}>
-                    <span style={{ color: 'rgba(224,216,181,0.9)', fontSize: '0.82rem', fontWeight: 500 }}>{tile.label}</span>
-                  </div>
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(224,216,181,0.25)', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Photo</div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ─── GALLERY — tap to zoom spring overlay ─── */}
+      <GallerySection tiles={GALLERY_TILES} gradients={GRADIENTS} />
 
       {/* ─── ABOUT ─── */}
-      <section className="section" style={{ background: 'var(--primary)', padding: '5.5rem 1.5rem' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '3rem', alignItems: 'center' }}>
-          <div>
-            <ScrollReveal direction="left">
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '0.75rem', display: 'block' }}>Who We Are</span>
-            </ScrollReveal>
-            <ScrollReveal direction="left" delay={1}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', color: 'white', lineHeight: 1.1, marginBottom: '1rem' }}>
-                Born from a love of Lebanon's mountains
-              </h2>
-            </ScrollReveal>
-            <ScrollReveal direction="left" delay={2}>
-              <p style={{ color: 'rgba(224,216,181,0.78)', lineHeight: 1.75, marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                Goatpackers started as a small group of friends with one shared obsession — the Lebanese mountains. Today we are a community of weekend warriors, trail runners, photography lovers, and anyone who needs fresh air and open space.
-              </p>
-            </ScrollReveal>
-            <ScrollReveal direction="left" delay={3}>
-              <a href="#team" className="btn btn-light">Meet the Team</a>
-            </ScrollReveal>
-          </div>
-          <ScrollReveal direction="right" delay={1}>
-            <div style={{ aspectRatio: '4/3', background: 'linear-gradient(135deg, rgba(45,47,28,0.6) 0%, rgba(128,133,80,0.4) 100%)', border: '1px solid rgba(224,216,181,0.15)', borderRadius: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(224,216,181,0.3)', fontSize: '0.8rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              <span>Photo coming soon</span>
+      <section id="about" style={{ background: 'linear-gradient(180deg, #111208 0%, #0e1007 100%)', padding: '6rem 1.5rem' }}>
+        <div className="container" style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
+          <ScrollReveal direction="bottom">
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', color: 'white', lineHeight: 1.1, marginBottom: '1.25rem' }}>
+              Born from a love of Lebanon's mountains
+            </h2>
+          </ScrollReveal>
+          <ScrollReveal direction="bottom" delay={1}>
+            <p style={{ color: 'rgba(224,216,181,0.68)', lineHeight: 1.8, fontSize: '1rem', maxWidth: '560px', margin: '0 auto 2.75rem' }}>
+              Goatpackers started as a small group of friends with one shared obsession — the Lebanese mountains. Today we are a community of weekend warriors, trail runners, photography lovers, and anyone who needs fresh air and open space.
+            </p>
+          </ScrollReveal>
+          <ScrollReveal direction="bottom" delay={2}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '2.5rem', flexWrap: 'wrap', marginBottom: '2.75rem', padding: '1.75rem', borderRadius: '14px', border: '1px solid rgba(224,216,181,0.08)', background: 'rgba(255,255,255,0.03)' }}>
+              {[
+                { value: '200+', label: 'Members' },
+                { value: '85+', label: 'Trails' },
+                { value: '6', label: 'Regions' },
+                { value: '6 yrs', label: 'Together' },
+              ].map(s => (
+                <div key={s.label} style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--primary-light)', lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'rgba(224,216,181,0.38)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '5px' }}>{s.label}</div>
+                </div>
+              ))}
             </div>
+          </ScrollReveal>
+          <ScrollReveal direction="bottom" delay={3}>
+            <a href="#team" className="btn btn-light">Meet the Team</a>
           </ScrollReveal>
         </div>
       </section>
@@ -317,18 +269,14 @@ export default function HomePage() {
       <section id="team" className="section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <ScrollReveal direction="fade">
+            <ScrollReveal direction="bottom">
               <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary)', display: 'block', marginBottom: '0.5rem' }}>The People</span>
-            </ScrollReveal>
-            <ScrollReveal direction="bottom" delay={1}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem, 4vw, 3rem)', color: 'var(--text)', lineHeight: 1.1 }}>Meet the Goatpackers</h2>
-            </ScrollReveal>
-            <ScrollReveal direction="bottom" delay={2}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.8rem, 4vw, 3rem)', color: 'var(--text)', lineHeight: 1.1, marginTop: 0 }}>Meet the Goatpackers</h2>
               <p style={{ marginTop: '1rem', color: 'var(--text-muted)', lineHeight: 1.7 }}>The people who make every hike happen.</p>
             </ScrollReveal>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.75rem', justifyContent: 'center' }}>
             {TEAM.map((member, i) => {
               const initials = member.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('');
               return (
@@ -354,54 +302,3 @@ export default function HomePage() {
   );
 }
 
-/* ─── Inline EventCard (avoids redirect to /contact) ─── */
-function EventCard({ event, variant = 'default' }: { event: HikingEvent; variant?: 'default' | 'compact' }) {
-  const spotsLeft = event.max_participants != null ? event.max_participants - event.current_participants : null;
-
-  return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{
-        height: variant === 'compact' ? '180px' : '220px',
-        background: event.image_url ? `url(${event.image_url}) center/cover no-repeat` : 'linear-gradient(135deg, var(--secondary) 0%, #4a4e28 100%)',
-        position: 'relative', flexShrink: 0,
-      }}>
-        <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-          <span className={`badge ${DIFFICULTY_CLASS[event.difficulty] ?? 'badge-moderate'}`}>{event.difficulty}</span>
-        </div>
-        {spotsLeft !== null && spotsLeft <= 5 && event.type === 'upcoming' && (
-          <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(45,47,28,0.85)', color: '#e0d8b5', borderRadius: '8px', padding: '3px 8px', fontSize: '0.72rem', fontWeight: 600 }}>
-            {spotsLeft === 0 ? 'Full' : `${spotsLeft} spots left`}
-          </div>
-        )}
-      </div>
-
-      <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--text)', marginBottom: '0.6rem', lineHeight: 1.25 }}>{event.title}</h3>
-        <p style={{ fontSize: '0.855rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{event.description}</p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
-          <MetaRow icon={<Calendar size={13} />} text={formatDate(event.date)} />
-          <MetaRow icon={<MapPin size={13} />} text={event.location} />
-          {event.duration_hours && <MetaRow icon={<Clock size={13} />} text={`${event.duration_hours}h`} />}
-          {event.elevation_gain_m && <MetaRow icon={<TrendingUp size={13} />} text={`+${event.elevation_gain_m}m elevation`} />}
-          {event.max_participants && <MetaRow icon={<Users size={13} />} text={`${event.current_participants}/${event.max_participants} hikers`} />}
-        </div>
-
-        {event.type === 'upcoming' && (
-          <a href="#contact" className="btn btn-primary" style={{ marginTop: '1rem', justifyContent: 'center', fontSize: '0.825rem' }}>
-            Register
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MetaRow({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-      <span style={{ color: 'var(--primary-mid)', flexShrink: 0 }}>{icon}</span>
-      {text}
-    </div>
-  );
-}

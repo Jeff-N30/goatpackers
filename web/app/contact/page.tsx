@@ -123,8 +123,8 @@ export default function ContactPage() {
                 {
                   icon: <Mail size={16} strokeWidth={1.75} />,
                   label: 'Email',
-                  value: 'info@goatpackers.lb',
-                  href: 'mailto:info@goatpackers.lb',
+                  value: 'goatpackers.lb@gmail.com',
+                  href: 'mailto:goatpackers.lb@gmail.com',
                 },
                 {
                   icon: <MapPin size={16} strokeWidth={1.75} />,
