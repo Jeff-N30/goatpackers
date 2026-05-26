@@ -1,0 +1,22 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+import Navbar from './Navbar';
+import Footer from './Footer';
+
+export default function PublicChrome({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isAdmin = pathname.startsWith('/admin');
+
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+
+  return (
+    <>
+      <Navbar />
+      <main style={{ flex: 1, paddingTop: '64px' }}>{children}</main>
+      <Footer />
+    </>
+  );
+}
