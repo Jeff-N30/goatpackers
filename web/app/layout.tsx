@@ -3,7 +3,7 @@ import './globals.css';
 import PublicChrome from '@/components/PublicChrome';
 import PageViewTracker from '@/components/PageViewTracker';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://goatpackers.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://goatpackers.lblabs.net';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

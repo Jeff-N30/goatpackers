@@ -24,6 +24,7 @@ export interface GalleryImage {
   event_id: string | null;
   width: number;
   height: number;
+  display_order: number | null;
   created_at: string;
 }
 

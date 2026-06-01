@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useRef, useState } from 'react';
-import { Upload, Trash2, X, Check, Image as ImageIcon } from 'lucide-react';
+import { Upload, Trash2, X, Check, Image as ImageIcon, Star } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase-admin';
 import type { GalleryImage } from '@/lib/types';
 
@@ -95,6 +95,17 @@ export default function AdminGalleryPage() {
     load();
   };
 
+  const handleSetSlot = async (img: GalleryImage, slot: 1 | 2 | 3) => {
+    const isCurrentSlot = img.display_order === slot;
+    // Clear this slot from whoever has it
+    await supabase.from('gallery').update({ display_order: null }).eq('display_order', slot);
+    // Set or unset for this image
+    await supabase.from('gallery')
+      .update({ display_order: isCurrentSlot ? null : slot })
+      .eq('id', img.id);
+    load();
+  };
+
   return (
     <div style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -120,6 +131,11 @@ export default function AdminGalleryPage() {
             onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
           />
         </div>
+      </div>
+
+      {/* Slider slot info */}
+      <div style={{ background: 'rgba(92,97,53,0.07)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.875rem 1rem', marginBottom: '1.25rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+        <strong style={{ color: 'var(--text)' }}>Homepage slider:</strong> Click S1 / S2 / S3 on any image to assign it to that slide position. The 3 assigned images appear in the &quot;Through the Lens&quot; section on the main page. Click again to remove.
       </div>
 
       {/* Upload drop zone */}
@@ -162,7 +178,7 @@ export default function AdminGalleryPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
           {images.map((img) => (
-            <div key={img.id} style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
+            <div key={img.id} style={{ background: 'white', border: img.display_order ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: '0.875rem', overflow: 'hidden' }}>
               {/* Image preview */}
               <div
                 style={{
@@ -173,6 +189,17 @@ export default function AdminGalleryPage() {
                   position: 'relative',
                 }}
               >
+                {img.display_order && (
+                  <div style={{
+                    position: 'absolute', top: '8px', left: '8px',
+                    background: 'var(--primary)', color: '#e0d8b5',
+                    borderRadius: '6px', padding: '3px 8px',
+                    fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.06em',
+                    display: 'flex', alignItems: 'center', gap: '4px',
+                  }}>
+                    <Star size={10} fill="currentColor" /> Slide {img.display_order}
+                  </div>
+                )}
                 <button
                   onClick={() => setDeleteId(img.id)}
                   style={{
@@ -183,6 +210,25 @@ export default function AdminGalleryPage() {
                 >
                   <Trash2 size={13} />
                 </button>
+              </div>
+              {/* Slot buttons */}
+              <div style={{ display: 'flex', gap: '4px', padding: '6px 8px 0', justifyContent: 'center' }}>
+                {([1, 2, 3] as const).map(slot => (
+                  <button
+                    key={slot}
+                    onClick={() => handleSetSlot(img, slot)}
+                    title={img.display_order === slot ? 'Remove from slider' : `Set as Slide ${slot}`}
+                    style={{
+                      flex: 1, padding: '4px 0', borderRadius: '6px', border: 'none',
+                      fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer',
+                      background: img.display_order === slot ? 'var(--primary)' : 'rgba(92,97,53,0.08)',
+                      color: img.display_order === slot ? 'white' : 'var(--primary)',
+                      transition: 'background 150ms ease, color 150ms ease',
+                    }}
+                  >
+                    S{slot}
+                  </button>
+                ))}
               </div>
               {/* Caption */}
               <div style={{ padding: '0.625rem 0.75rem' }}>
