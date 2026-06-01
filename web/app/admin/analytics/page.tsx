@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { BarChart2, TrendingUp, Eye, Globe } from 'lucide-react';

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { KeyRound, CheckCircle } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase-admin';
 
-export const dynamic = 'force-dynamic';
 
 export default function AdminSettingsPage() {
   const [current, setCurrent]   = useState('');
