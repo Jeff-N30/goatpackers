@@ -83,7 +83,7 @@ export default function AdminDashboard() {
       setLoading(false);
     }
     load();
-  }, [supabase]);
+  }, []); // eslint-disable-line
 
   return (
     <div style={{ padding: '2rem' }}>
