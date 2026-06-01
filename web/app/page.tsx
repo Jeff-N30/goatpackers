@@ -33,39 +33,41 @@ const MOCK_SLIDES: SliderImage[] = [
 const AVATAR_COLORS = ['#5c6135', '#4a4e28', '#808550', '#6b7040'];
 
 export default async function HomePage() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  let UPCOMING = MOCK_UPCOMING;
+  let PAST = MOCK_PAST;
+  let TEAM: TeamMember[] = MOCK_TEAM;
+  let SLIDES: SliderImage[] = MOCK_SLIDES;
 
-  /* ─── Fetch all data in parallel ─── */
-  const [eventsRes, teamRes, featuredRes, recentRes] = await Promise.all([
-    supabase.from('events').select('*').order('date', { ascending: true }),
-    supabase.from('team').select('*').order('order', { ascending: true }),
-    supabase.from('gallery').select('id,image_url,caption,display_order').not('display_order', 'is', null).order('display_order', { ascending: true }).limit(3),
-    supabase.from('gallery').select('id,image_url,caption').order('created_at', { ascending: false }).limit(3),
-  ]);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  /* ─── Events: auto-categorize by date ─── */
-  const today = new Date().toISOString().split('T')[0];
-  const allEvents = eventsRes.data ?? [];
-  const UPCOMING = allEvents.length > 0
-    ? allEvents.filter(e => e.date >= today).map(e => ({ ...e, type: 'upcoming' as const }))
-    : MOCK_UPCOMING;
-  const PAST = allEvents.length > 0
-    ? allEvents.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date)).map(e => ({ ...e, type: 'past' as const }))
-    : MOCK_PAST;
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
-  /* ─── Team ─── */
-  const TEAM: TeamMember[] = teamRes.data && teamRes.data.length > 0 ? teamRes.data : MOCK_TEAM;
+      const [eventsRes, teamRes, featuredRes, recentRes] = await Promise.all([
+        supabase.from('events').select('*').order('date', { ascending: true }),
+        supabase.from('team').select('*').order('order', { ascending: true }),
+        supabase.from('gallery').select('id,image_url,caption,display_order').not('display_order', 'is', null).order('display_order', { ascending: true }).limit(3),
+        supabase.from('gallery').select('id,image_url,caption').order('created_at', { ascending: false }).limit(3),
+      ]);
 
-  /* ─── Gallery slides: featured first, fall back to recent ─── */
-  const rawSlides = featuredRes.data && featuredRes.data.length > 0
-    ? featuredRes.data
-    : (recentRes.data ?? []);
-  const SLIDES: SliderImage[] = rawSlides.length > 0
-    ? rawSlides.map(r => ({ id: r.id, image_url: r.image_url, caption: r.caption }))
-    : MOCK_SLIDES;
+      const today = new Date().toISOString().split('T')[0];
+      const allEvents = eventsRes.data ?? [];
+      if (allEvents.length > 0) {
+        UPCOMING = allEvents.filter(e => e.date >= today).map(e => ({ ...e, type: 'upcoming' as const }));
+        PAST = allEvents.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date)).map(e => ({ ...e, type: 'past' as const }));
+      }
+
+      if (teamRes.data && teamRes.data.length > 0) TEAM = teamRes.data;
+
+      const rawSlides = featuredRes.data && featuredRes.data.length > 0 ? featuredRes.data : (recentRes.data ?? []);
+      if (rawSlides.length > 0) SLIDES = rawSlides.map(r => ({ id: r.id, image_url: r.image_url, caption: r.caption }));
+
+    } catch {
+      // fall through to mock data already set above
+    }
+  }
 
   return (
     <>
