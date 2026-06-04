@@ -9,7 +9,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://goatpackers.lblabs
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Goatpackers Lebanon — Hiking Club & Mountain Trails',
+    default: 'Goatpackers Lebanon',
     template: '%s | Goatpackers Lebanon',
   },
   description:

@@ -48,7 +48,7 @@ export default function AdminGalleryPage() {
       setUploadProgress(`Uploading ${i + 1}/${files.length}: ${files[i].name}`);
       const url = await uploadFile(files[i]);
       if (url) {
-        await adminOp('insert', 'gallery', { image_url: url, caption: null, width: 800, height: 600 });
+        await adminOp('insert', 'gallery', { image_url: url, caption: null });
       }
     }
     setUploading(false);
@@ -64,7 +64,7 @@ export default function AdminGalleryPage() {
     const url = await uploadFile(files[0]);
     if (url) {
       // Insert new image
-      const inserted = await adminOp('insert', 'gallery', { image_url: url, caption: null, width: 800, height: 600 }) as GalleryImage[] | null;
+      const inserted = await adminOp('insert', 'gallery', { image_url: url, caption: null }) as GalleryImage[] | null;
       const newId = Array.isArray(inserted) && inserted[0] ? inserted[0].id : null;
       if (newId) {
         // Clear existing slot assignment
@@ -112,7 +112,7 @@ export default function AdminGalleryPage() {
 
   const handleAddUrl = async (e: React.FormEvent) => {
     e.preventDefault();
-    await adminOp('insert', 'gallery', { image_url: urlForm.image_url, caption: urlForm.caption || null, width: 800, height: 600 });
+    await adminOp('insert', 'gallery', { image_url: urlForm.image_url, caption: urlForm.caption || null });
     setUrlModal(false);
     setUrlForm({ image_url: '', caption: '' });
     load();
