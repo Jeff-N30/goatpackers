@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Check } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase-admin';
+import { adminOp } from '@/lib/admin-api';
 import type { HikingEvent, Difficulty } from '@/lib/types';
 
 type Tab = 'upcoming' | 'past';
@@ -24,18 +25,18 @@ export default function AdminEventsPage() {
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from('events')
-      .select('*')
-      .eq('type', tab)
+      .from('events').select('*').eq('type', tab)
       .order('date', { ascending: tab === 'upcoming' });
     setEvents(data ?? []);
     setLoading(false);
   };
 
+  useEffect(() => { setMounted(true); }, []);
   useEffect(() => { load(); }, [tab]); // eslint-disable-line
 
   const openAdd = () => { setForm({ ...EMPTY_FORM, type: tab }); setEditId(null); setModalOpen(true); };
@@ -63,57 +64,52 @@ export default function AdminEventsPage() {
       elevation_gain_m: form.elevation_gain_m ? Number(form.elevation_gain_m) : null,
       image_url: form.image_url || null,
     };
-    if (editId) {
-      await supabase.from('events').update(payload).eq('id', editId);
-    } else {
-      await supabase.from('events').insert({ ...payload, current_participants: 0 });
+    try {
+      if (editId) {
+        await adminOp('update', 'events', payload, { id: editId });
+      } else {
+        await adminOp('insert', 'events', { ...payload, current_participants: 0 });
+      }
+      setModalOpen(false);
+      load();
+    } catch (err) {
+      alert(String(err));
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    setModalOpen(false);
-    load();
   };
 
   const handleDelete = async (id: string) => {
-    await supabase.from('events').delete().eq('id', id);
+    await adminOp('delete', 'events', undefined, { id });
     setDeleteId(null);
     load();
   };
 
   const toggleType = async (ev: HikingEvent) => {
     const newType = ev.type === 'upcoming' ? 'past' : 'upcoming';
-    await supabase.from('events').update({ type: newType }).eq('id', ev.id);
+    await adminOp('update', 'events', { type: newType }, { id: ev.id });
     load();
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
-      {/* Header */}
+    <div className={`admin-page${mounted ? ' admin-page--visible' : ''}`} style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--secondary)', margin: 0 }}>Events</h1>
-        <button className="btn btn-primary" onClick={openAdd} style={{ fontSize: '0.82rem' }}>
+        <h1 className="admin-title">Events</h1>
+        <button className="btn btn-primary admin-btn" onClick={openAdd} style={{ fontSize: '0.82rem' }}>
           <Plus size={15} /> Add Hike
         </button>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '1.25rem', background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px', width: 'fit-content' }}>
+      <div className="admin-tabs">
         {(['upcoming', 'past'] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              padding: '6px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-              fontSize: '0.85rem', fontWeight: 500, background: tab === t ? 'var(--secondary)' : 'transparent',
-              color: tab === t ? 'white' : 'var(--text-muted)', transition: 'all 200ms ease',
-            }}
-          >
+          <button key={t} onClick={() => setTab(t)} className={`admin-tab${tab === t ? ' admin-tab--active' : ''}`}>
             {t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* Table */}
-      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '1rem', overflow: 'hidden' }}>
+      <div className="admin-table-wrap">
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
           <thead>
             <tr style={{ background: '#fdf9f9', borderBottom: '1px solid var(--border)' }}>
@@ -124,12 +120,16 @@ export default function AdminEventsPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Loading...</td></tr>
+              <tr><td colSpan={6} style={{ padding: '2rem' }}><SkeletonRows rows={4} /></td></tr>
             ) : events.length === 0 ? (
               <tr><td colSpan={6} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No {tab} events.</td></tr>
             ) : (
-              events.map((ev) => (
-                <tr key={ev.id} style={{ borderBottom: '1px solid var(--border)' }}>
+              events.map((ev, i) => (
+                <tr
+                  key={ev.id}
+                  className="admin-table-row"
+                  style={{ borderBottom: '1px solid var(--border)', animationDelay: `${i * 40}ms` }}
+                >
                   <td style={tdStyle}>
                     <div style={{ fontWeight: 500, color: 'var(--text)' }}>{ev.title}</div>
                     {ev.image_url && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Has image</div>}
@@ -158,7 +158,6 @@ export default function AdminEventsPage() {
         </table>
       </div>
 
-      {/* Add / Edit Modal */}
       {modalOpen && (
         <Modal title={editId ? 'Edit Event' : 'Add New Hike'} onClose={() => setModalOpen(false)}>
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -207,15 +206,14 @@ export default function AdminEventsPage() {
             </FormField>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
               <button type="button" className="btn btn-outline" onClick={() => setModalOpen(false)}>Cancel</button>
-              <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? 'Saving...' : <><Check size={14} /> Save</>}
+              <button type="submit" className="btn btn-primary admin-btn" disabled={saving}>
+                {saving ? 'Saving…' : <><Check size={14} /> Save</>}
               </button>
             </div>
           </form>
         </Modal>
       )}
 
-      {/* Delete confirm */}
       {deleteId && (
         <Modal title="Delete Event?" onClose={() => setDeleteId(null)}>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
@@ -223,7 +221,7 @@ export default function AdminEventsPage() {
           </p>
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
             <button className="btn btn-outline" onClick={() => setDeleteId(null)}>Cancel</button>
-            <button className="btn btn-primary" style={{ background: '#c0392b' }} onClick={() => handleDelete(deleteId)}>
+            <button className="btn btn-primary admin-btn" style={{ background: '#c0392b' }} onClick={() => handleDelete(deleteId)}>
               <Trash2 size={14} /> Delete
             </button>
           </div>
@@ -233,11 +231,10 @@ export default function AdminEventsPage() {
   );
 }
 
-/* ─── Shared helpers ─── */
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(45,47,28,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ background: 'white', borderRadius: '1.25rem', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 24px 60px -12px rgba(45,47,28,0.3)' }}>
+    <div className="admin-modal-backdrop" onClick={onClose}>
+      <div className="admin-modal" style={{ maxWidth: '600px', maxHeight: '90vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', color: 'var(--secondary)', margin: 0 }}>{title}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}><X size={18} /></button>
@@ -250,7 +247,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 
 function IconBtn({ onClick, title, danger, children }: { onClick: () => void; title: string; danger?: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} title={title} style={{ background: danger ? '#fdf2f2' : '#f7f2f2', border: 'none', borderRadius: '7px', padding: '6px 8px', cursor: 'pointer', color: danger ? '#c0392b' : 'var(--secondary)', display: 'flex', alignItems: 'center', transition: 'background 200ms ease' }}>
+    <button onClick={onClick} title={title} className={`admin-icon-btn${danger ? ' admin-icon-btn--danger' : ''}`}>
       {children}
     </button>
   );
@@ -259,12 +256,26 @@ function IconBtn({ onClick, title, danger, children }: { onClick: () => void; ti
 function FormRow({ children }: { children: React.ReactNode }) {
   return <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>{children}</div>;
 }
-
 function FormField({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
       <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)' }}>{label}{required && ' *'}</label>
       {children}
+    </div>
+  );
+}
+
+function SkeletonRows({ rows }: { rows: number }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} style={{ display: 'flex', gap: '12px' }}>
+          <div className="admin-skeleton" style={{ height: '18px', flex: 3, borderRadius: '6px' }} />
+          <div className="admin-skeleton" style={{ height: '18px', flex: 1, borderRadius: '6px' }} />
+          <div className="admin-skeleton" style={{ height: '18px', flex: 2, borderRadius: '6px' }} />
+          <div className="admin-skeleton" style={{ height: '18px', width: '60px', borderRadius: '6px' }} />
+        </div>
+      ))}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js';
 import { ChevronRight, MapPin, Mail } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
@@ -16,46 +17,69 @@ function InstagramIcon() {
     </svg>
   );
 }
-//hello
 
-const ACTIONS = [
-  {
-    icon: <WhatsAppIcon />,
-    label: 'WhatsApp',
-    value: '+961 76 369 668',
-    sub: 'Message us directly — we reply fast',
-    href: 'https://wa.me/96176369668',
-    color: '#25D366',
-    bg: 'rgba(37,211,102,0.12)',
-    border: 'rgba(37,211,102,0.28)',
-  },
-  {
-    icon: <InstagramIcon />,
-    label: 'Instagram',
-    value: '@goatpackers.lb',
-    sub: 'Send us a DM or follow our trails',
-    href: 'https://ig.me/m/goatpackers.lb',
-    color: '#E1306C',
-    bg: 'rgba(225,48,108,0.12)',
-    border: 'rgba(225,48,108,0.28)',
-  },
-  {
-    icon: <Mail size={22} strokeWidth={1.75} />,
-    label: 'Email',
-    value: 'goatpackers.lb@gmail.com',
-    sub: 'For inquiries, partnerships, media',
-    href: 'mailto:goatpackers.lb@gmail.com',
-    color: 'var(--primary)',
-    bg: 'rgba(92,97,53,0.10)',
-    border: 'rgba(92,97,53,0.22)',
-  },
-] as const;
+const DEFAULTS = {
+  whatsapp_number: '+961 76 369 668',
+  whatsapp_href:   'https://wa.me/96176369668',
+  instagram_handle:'@goatpackers.lb',
+  instagram_href:  'https://ig.me/m/goatpackers.lb',
+  email:           'goatpackers.lb@gmail.com',
+};
 
-export default function ContactSection() {
+async function getContactSettings() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return DEFAULTS;
+  try {
+    const supabase = createClient(url, key);
+    const { data } = await supabase.from('site_settings').select('key, value');
+    if (!data || data.length === 0) return DEFAULTS;
+    const map = Object.fromEntries(data.map((r: { key: string; value: string }) => [r.key, r.value]));
+    return { ...DEFAULTS, ...map };
+  } catch {
+    return DEFAULTS;
+  }
+}
+
+export default async function ContactSection() {
+  const s = await getContactSettings();
+
+  const ACTIONS = [
+    {
+      icon: <WhatsAppIcon />,
+      label: 'WhatsApp',
+      value: s.whatsapp_number,
+      sub: 'Message us directly — we reply fast',
+      href: s.whatsapp_href,
+      color: '#25D366',
+      bg: 'rgba(37,211,102,0.12)',
+      border: 'rgba(37,211,102,0.28)',
+    },
+    {
+      icon: <InstagramIcon />,
+      label: 'Instagram',
+      value: s.instagram_handle,
+      sub: 'Send us a DM or follow our trails',
+      href: s.instagram_href,
+      color: '#E1306C',
+      bg: 'rgba(225,48,108,0.12)',
+      border: 'rgba(225,48,108,0.28)',
+    },
+    {
+      icon: <Mail size={22} strokeWidth={1.75} />,
+      label: 'Email',
+      value: s.email,
+      sub: 'For inquiries, partnerships, media',
+      href: `mailto:${s.email}`,
+      color: 'var(--primary)',
+      bg: 'rgba(92,97,53,0.10)',
+      border: 'rgba(92,97,53,0.22)',
+    },
+  ] as const;
+
   return (
     <section id="contact" className="section" style={{ background: 'rgba(92,97,53,0.03)' }}>
       <div className="container">
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
           <ScrollReveal direction="bottom">
             <span style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--primary)', display: 'block', marginBottom: '0.4rem' }}>
@@ -70,7 +94,6 @@ export default function ContactSection() {
           </ScrollReveal>
         </div>
 
-        {/* Action cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.125rem', maxWidth: '920px', margin: '0 auto' }}>
           {ACTIONS.map(({ icon, label, value, sub, href, color, bg, border }, i) => (
             <ScrollReveal key={label} direction="bottom" delay={((i + 1) as 1|2|3)}>
@@ -81,42 +104,22 @@ export default function ContactSection() {
                 className="contact-action-card"
                 style={{ border: `1px solid ${border}` } as React.CSSProperties}
               >
-                {/* Platform icon badge */}
-                <div style={{
-                  width: '52px', height: '52px', borderRadius: '14px',
-                  background: bg, display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', color, marginBottom: '1.125rem', flexShrink: 0,
-                }}>
+                <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color, marginBottom: '1.125rem', flexShrink: 0 }}>
                   {icon}
                 </div>
-
-                {/* Text */}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '3px' }}>
-                    {label}
-                  </div>
-                  <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', marginBottom: '4px', wordBreak: 'break-all' }}>
-                    {value}
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    {sub}
-                  </div>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '3px' }}>{label}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', marginBottom: '4px', wordBreak: 'break-all' }}>{value}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{sub}</div>
                 </div>
-
-                {/* Arrow */}
                 <ChevronRight size={18} strokeWidth={2} style={{ color, opacity: 0.65, marginTop: '0.5rem', alignSelf: 'flex-end' }} />
               </a>
             </ScrollReveal>
           ))}
         </div>
 
-        {/* Location footnote */}
         <ScrollReveal direction="fade">
-          <div style={{
-            textAlign: 'center', marginTop: '2.5rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem',
-          }}>
+          <div style={{ textAlign: 'center', marginTop: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
             <MapPin size={15} strokeWidth={1.75} style={{ color: 'var(--primary)' }} />
             <span>Based in <strong style={{ color: 'var(--text)' }}>Lebanon 🇱🇧</strong> — exploring mountain trails year-round</span>
           </div>

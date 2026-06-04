@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import PublicChrome from '@/components/PublicChrome';
 import PageViewTracker from '@/components/PageViewTracker';
+import ScrollTop from '@/components/ScrollTop';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://goatpackers.lblabs.net';
 
@@ -120,6 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <ScrollTop />
         <PageViewTracker />
         <PublicChrome>{children}</PublicChrome>
       </body>

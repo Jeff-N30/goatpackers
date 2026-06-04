@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Trash2, Eye, MailOpen, Mail, X } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase-admin';
+import { adminOp } from '@/lib/admin-api';
 
 interface Contact {
   id: string;
@@ -23,6 +24,7 @@ export default function AdminContactsPage() {
   const [filter, setFilter] = useState<Filter>('all');
   const [selected, setSelected] = useState<Contact | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -34,23 +36,24 @@ export default function AdminContactsPage() {
     setLoading(false);
   };
 
+  useEffect(() => { setMounted(true); }, []);
   useEffect(() => { load(); }, [filter]); // eslint-disable-line
 
   const openMessage = async (c: Contact) => {
     setSelected(c);
     if (!c.read) {
-      await supabase.from('contacts').update({ read: true }).eq('id', c.id);
+      await adminOp('update', 'contacts', { read: true }, { id: c.id });
       setContacts((prev) => prev.map((x) => x.id === c.id ? { ...x, read: true } : x));
     }
   };
 
   const toggleRead = async (c: Contact) => {
-    await supabase.from('contacts').update({ read: !c.read }).eq('id', c.id);
+    await adminOp('update', 'contacts', { read: !c.read }, { id: c.id });
     load();
   };
 
   const handleDelete = async (id: string) => {
-    await supabase.from('contacts').delete().eq('id', id);
+    await adminOp('delete', 'contacts', undefined, { id });
     setDeleteId(null);
     if (selected?.id === id) setSelected(null);
     load();
@@ -59,32 +62,25 @@ export default function AdminContactsPage() {
   const unreadCount = contacts.filter((c) => !c.read).length;
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className={`admin-page${mounted ? ' admin-page--visible' : ''}`} style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--secondary)', margin: 0 }}>Contacts</h1>
+          <h1 className="admin-title">Contacts</h1>
           {unreadCount > 0 && (
-            <span style={{ background: 'var(--secondary)', color: 'white', borderRadius: '9999px', padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700 }}>
-              {unreadCount} unread
-            </span>
+            <span className="admin-unread-badge">{unreadCount} unread</span>
           )}
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '1.25rem', background: 'white', border: '1px solid var(--border)', borderRadius: '12px', padding: '4px', width: 'fit-content' }}>
+      <div className="admin-tabs" style={{ marginBottom: '1.25rem' }}>
         {(['all', 'unread', 'read'] as Filter[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            style={{ padding: '6px 18px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, background: filter === f ? 'var(--secondary)' : 'transparent', color: filter === f ? 'white' : 'var(--text-muted)', transition: 'all 200ms ease' }}
-          >
+          <button key={f} onClick={() => setFilter(f)} className={`admin-tab${filter === f ? ' admin-tab--active' : ''}`}>
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
       </div>
 
-      <div style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '1rem', overflow: 'hidden' }}>
+      <div className="admin-table-wrap">
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
           <thead>
             <tr style={{ background: '#fdf9f9', borderBottom: '1px solid var(--border)' }}>
@@ -95,25 +91,23 @@ export default function AdminContactsPage() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Loading...</td></tr>
+              <tr><td colSpan={5} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading…</td></tr>
             ) : contacts.length === 0 ? (
               <tr><td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No messages.</td></tr>
             ) : (
-              contacts.map((c) => (
+              contacts.map((c, i) => (
                 <tr
                   key={c.id}
+                  className="admin-table-row"
                   onClick={() => openMessage(c)}
                   style={{
-                    borderBottom: '1px solid var(--border)',
-                    cursor: 'pointer',
+                    borderBottom: '1px solid var(--border)', cursor: 'pointer',
                     background: !c.read ? '#fdf8f8' : 'white',
-                    transition: 'background 150ms ease',
+                    animationDelay: `${i * 35}ms`,
                   }}
                 >
                   <td style={{ ...tdStyle, width: '16px', paddingRight: 0 }}>
-                    {!c.read && (
-                      <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--secondary)', display: 'inline-block' }} />
-                    )}
+                    {!c.read && <span className="admin-unread-dot" />}
                   </td>
                   <td style={tdStyle}>
                     <div style={{ fontWeight: c.read ? 400 : 600, color: 'var(--text)' }}>{c.name}</div>
@@ -139,10 +133,9 @@ export default function AdminContactsPage() {
         </table>
       </div>
 
-      {/* Message detail panel */}
       {selected && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(45,47,28,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'white', borderRadius: '1.25rem', width: '100%', maxWidth: '560px', boxShadow: '0 24px 60px -12px rgba(45,47,28,0.3)' }}>
+        <div className="admin-modal-backdrop" onClick={() => setSelected(null)}>
+          <div className="admin-modal" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', color: 'var(--secondary)', margin: '0 0 4px' }}>{selected.subject}</h2>
@@ -158,10 +151,10 @@ export default function AdminContactsPage() {
                 Received {new Date(selected.created_at).toLocaleString('en-GB')}
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-                <a href={`mailto:${selected.email}?subject=Re: ${selected.subject}`} className="btn btn-primary" style={{ fontSize: '0.82rem' }}>
+                <a href={`mailto:${selected.email}?subject=Re: ${selected.subject}`} className="btn btn-primary admin-btn" style={{ fontSize: '0.82rem' }}>
                   Reply via Email
                 </a>
-                <button className="btn btn-outline" style={{ fontSize: '0.82rem', borderColor: '#c0392b', color: '#c0392b' }} onClick={() => { setDeleteId(selected.id); setSelected(null); }}>
+                <button className="btn btn-outline admin-btn" style={{ fontSize: '0.82rem', borderColor: '#c0392b', color: '#c0392b' }} onClick={() => { setDeleteId(selected.id); setSelected(null); }}>
                   <Trash2 size={14} /> Delete
                 </button>
               </div>
@@ -170,15 +163,14 @@ export default function AdminContactsPage() {
         </div>
       )}
 
-      {/* Delete confirm */}
       {deleteId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(45,47,28,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'white', borderRadius: '1.25rem', padding: '2rem', maxWidth: '400px', width: '100%', boxShadow: '0 24px 60px -12px rgba(45,47,28,0.3)' }}>
+        <div className="admin-modal-backdrop" onClick={() => setDeleteId(null)}>
+          <div className="admin-modal" style={{ maxWidth: '400px', padding: '2rem' }} onClick={e => e.stopPropagation()}>
             <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--secondary)', margin: '0 0 0.75rem' }}>Delete Message?</h3>
             <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>This cannot be undone.</p>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button className="btn btn-outline" onClick={() => setDeleteId(null)}>Cancel</button>
-              <button className="btn btn-primary" style={{ background: '#c0392b' }} onClick={() => handleDelete(deleteId)}>
+              <button className="btn btn-primary admin-btn" style={{ background: '#c0392b' }} onClick={() => handleDelete(deleteId)}>
                 <Trash2 size={14} /> Delete
               </button>
             </div>
@@ -191,7 +183,7 @@ export default function AdminContactsPage() {
 
 function IconBtn({ onClick, title, danger, children }: { onClick: () => void; title: string; danger?: boolean; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} title={title} style={{ background: danger ? '#fdf2f2' : '#f7f2f2', border: 'none', borderRadius: '7px', padding: '6px 8px', cursor: 'pointer', color: danger ? '#c0392b' : 'var(--secondary)', display: 'flex', transition: 'background 200ms ease' }}>
+    <button onClick={onClick} title={title} className={`admin-icon-btn${danger ? ' admin-icon-btn--danger' : ''}`}>
       {children}
     </button>
   );

@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import ScrollReveal from '@/components/ScrollReveal';
 import EventsSection from '@/components/EventsSection';
-import GallerySlider from '@/components/GallerySlider';
-import type { SliderImage } from '@/components/GallerySlider';
+import GalleryCarousel from '@/components/GalleryCarousel';
+import type { CarouselImage } from '@/components/GalleryCarousel';
 import ContactSection from '@/components/ContactSection';
 import type { HikingEvent, TeamMember } from '@/lib/types';
 
@@ -24,10 +24,11 @@ const MOCK_TEAM: TeamMember[] = [
   { id: '2', name: 'Mary Bark', role: 'Social Media Manager & Coordinator', bio: 'Manages logistics and scouting for all Goatpackers hikes. Expert in backcountry navigation and wilderness first aid.', image_url: null, order: 2 },
   { id: '3', name: 'Antoine Saliba', role: 'Guide & Medic', bio: 'Captures the spirit of every hike through a lens. Responsible for the gallery and all visual content.', image_url: null, order: 3 },
 ];
-const MOCK_SLIDES: SliderImage[] = [
+const MOCK_SLIDES: CarouselImage[] = [
   { id: 's1', image_url: null, caption: 'Qornet el Sawda Summit' },
   { id: 's2', image_url: null, caption: 'Chouf Cedar Forest' },
   { id: 's3', image_url: null, caption: 'Wadi Qannoubine' },
+  { id: 's4', image_url: null, caption: 'Kadisha Valley' },
 ];
 
 const AVATAR_COLORS = ['#5c6135', '#4a4e28', '#808550', '#6b7040'];
@@ -36,7 +37,7 @@ export default async function HomePage() {
   let UPCOMING = MOCK_UPCOMING;
   let PAST = MOCK_PAST;
   let TEAM: TeamMember[] = MOCK_TEAM;
-  let SLIDES: SliderImage[] = MOCK_SLIDES;
+  let SLIDES: CarouselImage[] = MOCK_SLIDES;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -135,7 +136,7 @@ export default async function HomePage() {
             </ScrollReveal>
           </div>
           <ScrollReveal direction="bottom" delay={1}>
-            <GallerySlider images={SLIDES} />
+            <GalleryCarousel images={SLIDES} />
           </ScrollReveal>
         </div>
       </section>
