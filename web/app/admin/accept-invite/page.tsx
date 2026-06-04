@@ -59,6 +59,10 @@ export default function AcceptInvitePage() {
       return;
     }
 
+    // Stamp the 24-hour session expiry cookie so the proxy lets them in
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+    document.cookie = `admin_expires_at=${expiresAt}; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
+
     setStatus('success');
     setTimeout(() => router.push('/admin'), 1500);
   };
