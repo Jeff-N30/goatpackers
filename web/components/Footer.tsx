@@ -47,7 +47,7 @@ export default function Footer() {
               />
             </div>
             <p style={{ color: 'rgba(224,216,181,0.62)', fontSize: '0.875rem', lineHeight: 1.75, maxWidth: '240px' }}>
-              A community of hikers exploring Lebanon's mountains, cedar forests, and coastal trails.
+              A community built for the wild, we do all sorts of outdoor activites from hiking, camping, trekking, climbing and more.
             </p>
             {/* Social icons */}
             <div style={{ display: 'flex', gap: '8px', marginTop: '1.25rem' }}>

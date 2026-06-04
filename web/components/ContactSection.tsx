@@ -19,11 +19,12 @@ function InstagramIcon() {
 }
 
 const DEFAULTS = {
-  whatsapp_number: '+961 76 369 668',
-  whatsapp_href:   'https://wa.me/96176369668',
-  instagram_handle:'@goatpackers.lb',
-  instagram_href:  'https://ig.me/m/goatpackers.lb',
-  email:           'goatpackers.lb@gmail.com',
+  whatsapp_number:    '+961 76 369 668',
+  whatsapp_href:      'https://wa.me/96176369668',
+  instagram_handle:   '@goatpackers.lb',
+  instagram_href:     'https://ig.me/m/goatpackers.lb',
+  email:              'goatpackers.lb@gmail.com',
+  whatsapp_group_href: 'https://chat.whatsapp.com/HuuCmQl4DaKGDm5jn6HIK5?s=sh&p=i&ilr=4&amv=1',
 };
 
 async function getContactSettings() {
@@ -75,6 +76,16 @@ export default async function ContactSection() {
       bg: 'rgba(92,97,53,0.10)',
       border: 'rgba(92,97,53,0.22)',
     },
+    {
+      icon: <WhatsAppIcon />,
+      label: 'WhatsApp Group',
+      value: 'Join the Group',
+      sub: 'Tap to join our community group chat',
+      href: s.whatsapp_group_href,
+      color: '#25D366',
+      bg: 'rgba(37,211,102,0.12)',
+      border: 'rgba(37,211,102,0.28)',
+    },
   ] as const;
 
   return (
@@ -94,9 +105,9 @@ export default async function ContactSection() {
           </ScrollReveal>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.125rem', maxWidth: '920px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.125rem', maxWidth: '1080px', margin: '0 auto' }}>
           {ACTIONS.map(({ icon, label, value, sub, href, color, bg, border }, i) => (
-            <ScrollReveal key={label} direction="bottom" delay={((i + 1) as 1|2|3)}>
+            <ScrollReveal key={label} direction="bottom" delay={((i + 1) as 1|2|3|4)}>
               <a
                 href={href}
                 target="_blank"
@@ -121,7 +132,7 @@ export default async function ContactSection() {
         <ScrollReveal direction="fade">
           <div style={{ textAlign: 'center', marginTop: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
             <MapPin size={15} strokeWidth={1.75} style={{ color: 'var(--primary)' }} />
-            <span>Based in <strong style={{ color: 'var(--text)' }}>Lebanon 🇱🇧</strong> — exploring mountain trails year-round</span>
+            <span>Based in <strong style={{ color: 'var(--text)' }}>Lebanon 🇱🇧</strong> All sorts of outdoor activites </span>
           </div>
         </ScrollReveal>
       </div>

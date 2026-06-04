@@ -97,7 +97,7 @@ const jsonLd = {
   logo: `${SITE_URL}/goatpackers_logo_dark.png`,
   image: `${SITE_URL}/background.jpeg`,
   sport: 'Hiking',
-  foundingDate: '2020',
+  foundingDate: '2026',
   address: {
     '@type': 'PostalAddress',
     addressCountry: 'LB',

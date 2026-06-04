@@ -98,7 +98,7 @@ export default async function HomePage() {
               fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase',
               color: 'var(--primary)',
             }}>
-              Lebanon · Est. 2020
+              Lebanon · Est. 2026
             </span>
           </div>
           <h1 className="hero-title" style={{
@@ -120,7 +120,7 @@ export default async function HomePage() {
           </p>
           <div className="hero-cta" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href="#events" className="btn btn-primary">Upcoming Hikes</a>
-            <a href="#contact" className="btn btn-outline">Join the Club</a>
+            <a href="#contact" className="btn btn-outline">Join the Whatsapp Group</a>
           </div>
         </div>
 
