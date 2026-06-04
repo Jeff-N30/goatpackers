@@ -138,7 +138,7 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
               className="btn btn-primary"
               style={{ width: '100%', justifyContent: 'center', borderRadius: '14px' }}
             >
-              Register for this Hike
+              Contact us for registration
             </a>
           ) : (
             <div style={{

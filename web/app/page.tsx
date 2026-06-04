@@ -157,16 +157,16 @@ export default async function HomePage() {
           </ScrollReveal>
           <ScrollReveal direction="bottom" delay={1}>
             <p style={{ color: 'var(--text-muted)', lineHeight: 1.8, fontSize: '1rem', maxWidth: '560px', margin: '0 auto 2.75rem' }}>
-              Goatpackers started as a small group of friends with one shared obsession — the Lebanese mountains. Today we are a community of weekend warriors, trail runners, photography lovers, and anyone who needs fresh air and open space.
+              Goatpackers started as a small group of young friends with one shared obsession, "the Wild". Today we are a community of Hikers, campers, goat packers, photography lovers, and anyone who chooses more than the city life.
             </p>
           </ScrollReveal>
           <ScrollReveal direction="bottom" delay={2}>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '2.5rem', flexWrap: 'wrap', marginBottom: '2.75rem', padding: '1.75rem', borderRadius: '14px', border: '1px solid var(--border)', background: 'var(--bg)' }}>
               {[
-                { value: '200+', label: 'Members' },
-                { value: '85+', label: 'Trails' },
+                { value: '150', label: 'Members' },
+                { value: '10,452 sqkm', label: 'Land' },
                 { value: '6', label: 'Regions' },
-                { value: '6 yrs', label: 'Together' },
+                { value: '1 year', label: 'Together' },
               ].map(s => (
                 <div key={s.label} style={{ textAlign: 'center' }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.6rem', color: 'var(--primary)', lineHeight: 1 }}>{s.value}</div>

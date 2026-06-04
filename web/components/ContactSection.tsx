@@ -50,7 +50,7 @@ export default async function ContactSection() {
       icon: <WhatsAppIcon />,
       label: 'WhatsApp',
       value: s.whatsapp_number,
-      sub: 'Message us directly — we reply fast',
+      sub: 'Message us directly',
       href: s.whatsapp_href,
       color: '#25D366',
       bg: 'rgba(37,211,102,0.12)',
@@ -70,7 +70,7 @@ export default async function ContactSection() {
       icon: <Mail size={22} strokeWidth={1.75} />,
       label: 'Email',
       value: s.email,
-      sub: 'For inquiries, partnerships, media',
+      sub: 'For inquiries, partnerships, collabs and media',
       href: `mailto:${s.email}`,
       color: 'var(--primary)',
       bg: 'rgba(92,97,53,0.10)',
@@ -80,7 +80,7 @@ export default async function ContactSection() {
       icon: <WhatsAppIcon />,
       label: 'WhatsApp Group',
       value: 'Join the Group',
-      sub: 'Tap to join our community group chat',
+      sub: 'Tap to join our group chat',
       href: s.whatsapp_group_href,
       color: '#25D366',
       bg: 'rgba(37,211,102,0.12)',
@@ -100,7 +100,7 @@ export default async function ContactSection() {
               Get in Touch
             </h2>
             <p style={{ marginTop: '0.75rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0.75rem auto 0', lineHeight: 1.7 }}>
-              Questions, partnerships, or just want to join a hike? Tap any card — opens the app on your phone.
+              Questions, partnerships, or want to join a hike? Tap any card,opens the app on your phone.
             </p>
           </ScrollReveal>
         </div>
@@ -132,7 +132,7 @@ export default async function ContactSection() {
         <ScrollReveal direction="fade">
           <div style={{ textAlign: 'center', marginTop: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
             <MapPin size={15} strokeWidth={1.75} style={{ color: 'var(--primary)' }} />
-            <span>Based in <strong style={{ color: 'var(--text)' }}>Lebanon 🇱🇧</strong> All sorts of outdoor activites </span>
+            <span>Based in <strong style={{ color: 'var(--text)' }}>Lebanon 🇱🇧</strong>   All sorts of outdoor activites </span>
           </div>
         </ScrollReveal>
       </div>
