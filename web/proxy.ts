@@ -11,7 +11,6 @@ export async function proxy(request: NextRequest) {
   const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
   const isLoginPath = request.nextUrl.pathname.startsWith('/admin/login');
 
-  // If env vars missing, let login page through and block everything else
   if (!supabaseUrl || !supabaseKey) {
     if (isAdminPath && !isLoginPath) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
@@ -19,6 +18,18 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // ── Check our custom 24-hour session expiry ──────────────────
+  const raw = request.cookies.get('admin_expires_at')?.value;
+  const sessionValid = !!raw && Date.now() < Number(raw);
+
+  // If expired/missing and trying to access admin, kick to login
+  if (isAdminPath && !isLoginPath && !sessionValid) {
+    const res = NextResponse.redirect(new URL('/admin/login', request.url));
+    res.cookies.set('admin_expires_at', '', { maxAge: 0, path: '/' });
+    return res;
+  }
+
+  // ── Verify Supabase session ──────────────────────────────────
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
@@ -41,14 +52,18 @@ export async function proxy(request: NextRequest) {
     const { data } = await supabase.auth.getUser();
     user = data.user;
   } catch {
-    // Supabase unreachable — fall through to redirect
+    // Supabase unreachable — fall through
   }
 
+  // No Supabase session on admin path → kick to login
   if (isAdminPath && !isLoginPath && !user) {
-    return NextResponse.redirect(new URL('/admin/login', request.url));
+    const res = NextResponse.redirect(new URL('/admin/login', request.url));
+    res.cookies.set('admin_expires_at', '', { maxAge: 0, path: '/' });
+    return res;
   }
 
-  if (isLoginPath && user) {
+  // Already logged in with valid session → skip login page
+  if (isLoginPath && user && sessionValid) {
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 

@@ -38,6 +38,7 @@ export const metadata: Metadata = {
   creator: 'Goatpackers Lebanon',
   publisher: 'Goatpackers Lebanon',
   alternates: { canonical: '/' },
+  icons: { icon: '/goatpackers_logo_dark.png' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -54,6 +55,8 @@ export const metadata: Metadata = {
         alt: 'Goatpackers Lebanon — Hiking in the Lebanese mountains',
       },
     ],
+
+    
   },
   twitter: {
     card: 'summary_large_image',

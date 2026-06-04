@@ -27,6 +27,10 @@ export default function AdminLoginPage() {
       return;
     }
 
+    // Set 24-hour session expiry cookie
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+    document.cookie = `admin_expires_at=${expiresAt}; path=/; max-age=${24 * 60 * 60}; SameSite=Lax`;
+
     router.push('/admin');
     router.refresh();
   };

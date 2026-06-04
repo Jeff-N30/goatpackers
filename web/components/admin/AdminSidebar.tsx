@@ -36,6 +36,8 @@ export default function AdminSidebar() {
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 
   const handleLogout = async () => {
+    // Clear custom session expiry cookie
+    document.cookie = 'admin_expires_at=; path=/; max-age=0; SameSite=Lax';
     await supabase.auth.signOut();
     router.push('/admin/login');
   };
