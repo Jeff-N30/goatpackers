@@ -8,7 +8,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://goatpackers.lblabs
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  verification: { google: 'PlEvW6Wmb_MkCeIWemdp6Z1aVRoCZkTciIJ02TVRKvU' },
+  verification: { google: 'xHPddgeiUlrX8i11BdZd0OudA0sDC-Z3Hfnf-JpnPAA' },
   title: {
     default: 'Goatpackers Lebanon',
     template: '%s | Goatpackers Lebanon',
