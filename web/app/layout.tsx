@@ -34,6 +34,13 @@ export const metadata: Metadata = {
     'Kadisha valley hike',
     'Lebanon nature',
     'trail running Lebanon',
+    'pack goats Lebanon',
+    'packing goats Lebanon',
+    'packing goats for hiking Lebanon',
+    'packing goats Lebanon',
+    'camping Lebanon',
+    'survival skills Lebanon',
+
   ],
   authors: [{ name: 'Goatpackers Lebanon', url: SITE_URL }],
   creator: 'Goatpackers Lebanon',
