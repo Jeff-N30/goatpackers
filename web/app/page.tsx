@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { unstable_noStore as noStore } from 'next/cache';
 import ScrollReveal from '@/components/ScrollReveal';
 import EventsSection from '@/components/EventsSection';
 import GalleryCarousel from '@/components/GalleryCarousel';
@@ -34,6 +35,7 @@ const MOCK_SLIDES: CarouselImage[] = [
 const AVATAR_COLORS = ['#5c6135', '#4a4e28', '#808550', '#6b7040'];
 
 export default async function HomePage() {
+  noStore(); // never cache — always fetch fresh data from DB
   let UPCOMING = MOCK_UPCOMING;
   let PAST = MOCK_PAST;
   let TEAM: TeamMember[] = MOCK_TEAM;
@@ -53,11 +55,15 @@ export default async function HomePage() {
         supabase.from('gallery').select('id,image_url,caption').order('created_at', { ascending: false }).limit(3),
       ]);
 
-      const today = new Date().toISOString().split('T')[0];
+      // Use DB data only when the table has entries — mocks disappear entirely
       const allEvents = eventsRes.data ?? [];
       if (allEvents.length > 0) {
-        UPCOMING = allEvents.filter(e => e.date >= today).map(e => ({ ...e, type: 'upcoming' as const }));
-        PAST = allEvents.filter(e => e.date < today).sort((a, b) => b.date.localeCompare(a.date)).map(e => ({ ...e, type: 'past' as const }));
+        UPCOMING = allEvents
+          .filter(e => e.type === 'upcoming')
+          .sort((a, b) => a.date.localeCompare(b.date));
+        PAST = allEvents
+          .filter(e => e.type === 'past')
+          .sort((a, b) => b.date.localeCompare(a.date));
       }
 
       if (teamRes.data && teamRes.data.length > 0) TEAM = teamRes.data;
