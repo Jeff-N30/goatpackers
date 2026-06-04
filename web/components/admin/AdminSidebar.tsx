@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Settings,
   Phone,
+  X,
 } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase-admin';
 
@@ -27,7 +28,7 @@ const NAV = [
   { href: '/admin/settings',   label: 'Settings',   icon: Settings },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = getAdminClient();
@@ -43,7 +44,12 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar${isOpen ? ' admin-sidebar--open' : ''}`}>
+      {/* Mobile close button */}
+      <button className="admin-sidebar-mobile-close" onClick={onClose} aria-label="Close menu">
+        <X size={16} />
+      </button>
+
       {/* Logo */}
       <div className="admin-sidebar-logo">
         <Link href="/admin" className="admin-sidebar-brand">
@@ -64,6 +70,7 @@ export default function AdminSidebar() {
               data-active={active}
               className={`admin-nav-link${active ? ' admin-nav-link--active' : ''}`}
               style={{ animationDelay: `${i * 35}ms` }}
+              onClick={onClose}
             >
               <Icon size={16} strokeWidth={active ? 2 : 1.75} style={{ flexShrink: 0 }} />
               <span style={{ flex: 1 }}>{label}</span>

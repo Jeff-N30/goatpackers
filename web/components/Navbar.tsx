@@ -32,6 +32,7 @@ export default function Navbar() {
 
   return (
     <>
+      {/* ─── Desktop floating navbar ─── */}
       <header className={`navbar${scrolled ? ' scrolled' : ''}`}>
         <div className="navbar-inner">
           <a href="#" aria-label="Goatpackers home" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
@@ -43,35 +44,44 @@ export default function Navbar() {
               priority
             />
           </a>
-
           <nav className="desktop-nav" aria-label="Main navigation">
             {NAV_LINKS.map(({ href, label }) => (
               <a key={href} href={href} className="nav-link">{label}</a>
             ))}
           </nav>
-
         </div>
       </header>
 
-      {/* Floating 3-dot trigger — mobile only */}
-      <button
-        className="mobile-trigger"
-        onClick={() => setMobileOpen(true)}
-        aria-label="Open menu"
-      >
-        <span className="mobile-trigger-dot" />
-        <span className="mobile-trigger-dot" />
-        <span className="mobile-trigger-dot" />
-      </button>
+      {/* ─── Mobile sticky header bar ─── */}
+      <div className="mobile-header">
+        <a href="#" aria-label="Goatpackers home" style={{ display: 'flex', alignItems: 'center' }}>
+          <Image
+            src="/goatpackers_logo_dark.png"
+            alt="Goatpackers"
+            width={120} height={32}
+            style={{ height: '26px', width: 'auto', objectFit: 'contain' }}
+            priority
+          />
+        </a>
+        <button
+          className="mobile-header-menu-btn"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
 
-      {/* Overlay */}
+      {/* ─── Overlay ─── */}
       <div
         className={`mobile-sidebar-overlay${mobileOpen ? ' open' : ''}`}
         onClick={close}
         aria-hidden
       />
 
-      {/* Sidebar */}
+      {/* ─── Slide-in sidebar ─── */}
       <aside className={`mobile-sidebar${mobileOpen ? ' open' : ''}`} aria-label="Navigation">
         <div className="mobile-sidebar-header">
           <a href="#" onClick={close} style={{ display: 'flex', alignItems: 'center' }}>
@@ -89,6 +99,7 @@ export default function Navbar() {
               background: 'rgba(92,97,53,0.08)', border: 'none',
               borderRadius: '8px', padding: '7px', cursor: 'pointer',
               display: 'flex', alignItems: 'center', color: 'var(--text)',
+              transition: 'background 150ms ease',
             }}
           >
             <X size={18} strokeWidth={2} />
@@ -97,12 +108,7 @@ export default function Navbar() {
 
         <nav style={{ padding: '0.75rem 0', flex: 1 }}>
           {NAV_LINKS.map(({ href, label }) => (
-            <a
-              key={href}
-              href={href}
-              className="mobile-sidebar-link"
-              onClick={close}
-            >
+            <a key={href} href={href} className="mobile-sidebar-link" onClick={close}>
               {label}
             </a>
           ))}
@@ -111,8 +117,7 @@ export default function Navbar() {
         <div style={{
           padding: '1rem 1.25rem 1.5rem',
           borderTop: '1px solid var(--border)',
-          fontSize: '0.72rem', color: 'var(--text-muted)',
-          letterSpacing: '0.06em',
+          fontSize: '0.72rem', color: 'var(--text-muted)', letterSpacing: '0.06em',
         }}>
           Lebanon — hiking year-round
         </div>

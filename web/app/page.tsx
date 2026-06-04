@@ -79,7 +79,7 @@ export default async function HomePage() {
   return (
     <>
       {/* ─── HERO ─── */}
-      <section style={{
+      <section className="hero-mobile-offset" style={{
         minHeight: '100vh',
         background: 'var(--bg)',
         backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(92,97,53,0.1) 1px, transparent 0)',
@@ -148,7 +148,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── ABOUT ─── */}
-      <section id="about" style={{ background: 'rgba(92,97,53,0.05)', padding: '6rem 1.5rem' }}>
+      <section id="about" className="section" style={{ background: 'rgba(92,97,53,0.05)' }}>
         <div className="container" style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
           <ScrollReveal direction="bottom">
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', color: 'var(--text)', lineHeight: 1.1, marginBottom: '1.25rem' }}>
