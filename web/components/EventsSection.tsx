@@ -5,7 +5,8 @@ import { X, Calendar, MapPin, Clock, TrendingUp, Users, ArrowRight } from 'lucid
 import ScrollReveal from './ScrollReveal';
 import type { HikingEvent } from '@/lib/types';
 
-const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const EASE_OUT = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const SPRING  = 'cubic-bezier(0.34, 1.56, 0.64, 1)'; // iOS overshoot — docks into place
 
 const DIFFICULTY_CLASS: Record<string, string> = {
   Easy: 'badge-easy', Moderate: 'badge-moderate', Hard: 'badge-hard', Expert: 'badge-expert',
@@ -17,7 +18,7 @@ function formatDate(dateStr: string) {
 
 function MetaRow({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
       <span style={{ color: 'var(--primary)', flexShrink: 0 }}>{icon}</span>
       {text}
     </div>
@@ -56,17 +57,18 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
           backdropFilter: 'blur(40px) saturate(200%)',
           WebkitBackdropFilter: 'blur(40px) saturate(200%)',
           boxShadow: '0 32px 80px -20px rgba(17,17,8,0.45)',
-          width: '100%', maxWidth: '520px',
-          transform: open ? 'scale(1) translateY(0)' : 'scale(0.93) translateY(20px)',
+          width: '100%', maxWidth: '500px',
+          maxHeight: 'calc(100dvh - 80px)',
+          transform: open ? 'scale(1) translateY(0)' : 'scale(0.86) translateY(40px)',
           opacity: open ? 1 : 0,
           transition: open
-            ? `transform 280ms ${EASE}, opacity 200ms ease-out`
-            : 'transform 160ms ease-in, opacity 140ms ease-in',
+            ? `transform 380ms ${SPRING}, opacity 180ms ease`
+            : `transform 180ms ${EASE_OUT}, opacity 140ms ease`,
         }}
       >
         {/* Header image / gradient */}
         <div style={{
-          height: '185px',
+          height: '155px',
           background: event.image_url
             ? `url(${event.image_url}) center/cover`
             : 'linear-gradient(135deg, #6a6840 0%, #807D50 100%)',
@@ -84,7 +86,7 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
               WebkitBackdropFilter: 'blur(8px)',
               border: 'none', color: 'white', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: `transform 200ms ${EASE}`,
+              transition: `transform 200ms ${EASE_OUT}`,
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.08)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; }}
@@ -109,25 +111,25 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
         </div>
 
         {/* Content */}
-        <div style={{ padding: '1.875rem' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.55rem', color: 'var(--text)', marginBottom: '0.75rem', lineHeight: 1.15 }}>
+        <div style={{ padding: '1.25rem' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', color: 'var(--text)', marginBottom: '0.4rem', lineHeight: 1.15 }}>
             {event.title}
           </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.72, marginBottom: '1.5rem' }}>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '0.875rem' }}>
             {event.description}
           </p>
 
           <div style={{
-            display: 'flex', flexDirection: 'column', gap: '0.65rem',
-            marginBottom: '1.75rem', padding: '1rem 1.125rem',
-            background: 'rgba(128,125,80,0.07)', borderRadius: '12px',
+            display: 'flex', flexDirection: 'column', gap: '0.45rem',
+            marginBottom: '1rem', padding: '0.75rem 0.875rem',
+            background: 'rgba(128,125,80,0.07)', borderRadius: '10px',
           }}>
-            <MetaRow icon={<Calendar size={15} />} text={formatDate(event.date)} />
-            <MetaRow icon={<MapPin size={15} />} text={event.location} />
-            {event.duration_hours && <MetaRow icon={<Clock size={15} />} text={`${event.duration_hours} hours`} />}
-            {event.elevation_gain_m && <MetaRow icon={<TrendingUp size={15} />} text={`+${event.elevation_gain_m}m elevation gain`} />}
+            <MetaRow icon={<Calendar size={13} />} text={formatDate(event.date)} />
+            <MetaRow icon={<MapPin size={13} />} text={event.location} />
+            {event.duration_hours && <MetaRow icon={<Clock size={13} />} text={`${event.duration_hours} hours`} />}
+            {event.elevation_gain_m && <MetaRow icon={<TrendingUp size={13} />} text={`+${event.elevation_gain_m}m elevation gain`} />}
             {event.max_participants && (
-              <MetaRow icon={<Users size={15} />} text={`${event.current_participants} / ${event.max_participants} hikers registered`} />
+              <MetaRow icon={<Users size={13} />} text={`${event.current_participants} / ${event.max_participants} hikers registered`} />
             )}
           </div>
 
@@ -136,15 +138,15 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
               href="#contact"
               onClick={onClose}
               className="btn btn-primary"
-              style={{ width: '100%', justifyContent: 'center', borderRadius: '14px' }}
+              style={{ width: '100%', justifyContent: 'center', borderRadius: '12px', padding: '0.6rem 1.5rem' }}
             >
               Contact us for registration
             </a>
           ) : (
             <div style={{
-              padding: '0.875rem 1rem', borderRadius: '14px',
+              padding: '0.7rem 1rem', borderRadius: '10px',
               background: 'rgba(128,125,80,0.08)', textAlign: 'center',
-              fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600,
+              fontSize: '0.825rem', color: 'var(--text-muted)', fontWeight: 600,
             }}>
               ✓ This adventure has concluded
             </div>
@@ -172,7 +174,7 @@ function CompactCard({ event, onOpen, past = false }: { event: HikingEvent; onOp
         overflow: 'hidden', cursor: 'pointer', width: '100%',
         textAlign: 'left', height: '100%',
         opacity: past ? 0.82 : 1,
-        transition: `transform 200ms ${EASE}, box-shadow 200ms ease, opacity 180ms ease`,
+        transition: `transform 200ms ${EASE_OUT}, box-shadow 200ms ease, opacity 180ms ease`,
       }}
       onMouseEnter={e => {
         Object.assign((e.currentTarget as HTMLElement).style, {
@@ -186,7 +188,7 @@ function CompactCard({ event, onOpen, past = false }: { event: HikingEvent; onOp
           transform: '',
           boxShadow: '0 2px 12px -6px rgba(128,125,80,0.10)',
           opacity: past ? '0.82' : '1',
-          transition: `transform 200ms ${EASE}, box-shadow 200ms ease, opacity 180ms ease`,
+          transition: `transform 200ms ${EASE_OUT}, box-shadow 200ms ease, opacity 180ms ease`,
         });
       }}
       onMouseDown={e => {
@@ -197,7 +199,7 @@ function CompactCard({ event, onOpen, past = false }: { event: HikingEvent; onOp
       }}
       onMouseUp={e => {
         (e.currentTarget as HTMLElement).style.transition =
-          `transform 200ms ${EASE}, box-shadow 200ms ease, opacity 180ms ease`;
+          `transform 200ms ${EASE_OUT}, box-shadow 200ms ease, opacity 180ms ease`;
       }}
     >
       {/* Accent top bar */}
