@@ -48,11 +48,10 @@ export default async function HomePage() {
     try {
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      const [eventsRes, teamRes, featuredRes, recentRes] = await Promise.all([
+      const [eventsRes, teamRes, galleryRes] = await Promise.all([
         supabase.from('events').select('*').order('date', { ascending: true }),
         supabase.from('team').select('*').order('order', { ascending: true }),
-        supabase.from('gallery').select('id,image_url,caption,display_order').not('display_order', 'is', null).order('display_order', { ascending: true }).limit(3),
-        supabase.from('gallery').select('id,image_url,caption').order('created_at', { ascending: false }).limit(3),
+        supabase.from('gallery').select('id,image_url,caption').order('created_at', { ascending: false }),
       ]);
 
       // Use DB data only when the table has entries — mocks disappear entirely
@@ -68,8 +67,8 @@ export default async function HomePage() {
 
       if (teamRes.data && teamRes.data.length > 0) TEAM = teamRes.data;
 
-      const rawSlides = featuredRes.data && featuredRes.data.length > 0 ? featuredRes.data : (recentRes.data ?? []);
-      if (rawSlides.length > 0) SLIDES = rawSlides.map(r => ({ id: r.id, image_url: r.image_url, caption: r.caption }));
+      const allSlides = galleryRes.data ?? [];
+      if (allSlides.length > 0) SLIDES = allSlides.map((r: { id: string; image_url: string | null; caption: string | null }) => ({ id: r.id, image_url: r.image_url, caption: r.caption }));
 
     } catch {
       // fall through to mock data already set above

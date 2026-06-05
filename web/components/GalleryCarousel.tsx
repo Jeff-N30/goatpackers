@@ -174,48 +174,35 @@ export default function GalleryCarousel({ images }: { images: CarouselImage[] })
       })()}
 
       {/* ── Sliding track ── */}
-      <div style={{ overflow: 'hidden', borderRadius: '10px' }}>
+      <div style={{ overflow: 'hidden', borderRadius: '14px' }}>
         <div style={{
           display: 'flex',
-          width: `${T * 100 / 3}%`,
+          width: `${T * 100}%`,
           transform: `translateX(-${trackIdx * 100 / T}%)`,
           transition: animated ? `transform 520ms ${EASE}` : 'none',
         }}>
           {tripled.map((img, i) => {
             const rIdx = i % n;
             return (
-              <div key={`${img.id}-${i}`} style={{ width: `${100 / T}%`, flexShrink: 0, padding: '0 5px' }}>
+              <div key={`${img.id}-${i}`} style={{ width: `${100 / T}%`, flexShrink: 0 }}>
                 <button
                   onClick={() => openZoom(rIdx)}
                   style={{
                     all: 'unset', display: 'block', cursor: 'pointer', width: '100%',
-                    aspectRatio: '4/3', borderRadius: '10px', overflow: 'hidden',
+                    aspectRatio: '16/9', overflow: 'hidden', position: 'relative',
                     background: img.image_url
                       ? `url(${img.image_url}) center/cover no-repeat`
                       : FALLBACK[rIdx % FALLBACK.length],
-                    position: 'relative',
-                    transition: `transform 180ms ${EASE}, box-shadow 180ms ease`,
-                    boxShadow: '0 4px 16px -6px rgba(92,97,53,0.16)',
                   }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.transform = 'scale(1.025) translateY(-2px)';
-                    (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 32px -8px rgba(92,97,53,0.24)';
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.transform = '';
-                    (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px -6px rgba(92,97,53,0.16)';
-                  }}
-                  onMouseDown={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'; }}
-                  onMouseUp={e => { (e.currentTarget as HTMLElement).style.transform = ''; }}
                 >
                   {img.caption && (
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
-                      padding: '1.5rem 0.875rem 0.625rem',
-                      background: 'linear-gradient(to top, rgba(17,17,8,0.65) 0%, transparent 100%)',
-                      color: 'rgba(224,216,181,0.9)',
+                      padding: '2.5rem 1.25rem 1rem',
+                      background: 'linear-gradient(to top, rgba(17,17,8,0.7) 0%, transparent 100%)',
+                      color: 'rgba(224,216,181,0.95)',
                       fontFamily: 'var(--font-display)',
-                      fontSize: '0.8rem',
+                      fontSize: '0.925rem',
                     }}>
                       {img.caption}
                     </div>
@@ -265,7 +252,7 @@ const zoomNavBtn: React.CSSProperties = {
 
 const trackNavBtn: React.CSSProperties = {
   width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0,
-  background: 'rgba(92,97,53,0.1)', border: '1px solid var(--border)',
+  background: 'rgba(128,125,80,0.1)', border: '1px solid var(--border)',
   color: 'var(--primary)', cursor: 'pointer',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
