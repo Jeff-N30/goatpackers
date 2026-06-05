@@ -82,8 +82,6 @@ export default async function HomePage() {
       <section className="hero-mobile-offset" style={{
         minHeight: '100vh',
         background: 'var(--bg)',
-        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(92,97,53,0.1) 1px, transparent 0)',
-        backgroundSize: '28px 28px',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         position: 'relative', padding: '120px 24px 100px',
       }}>
@@ -91,8 +89,8 @@ export default async function HomePage() {
           <div className="hero-badge" style={{ marginBottom: '1.25rem' }}>
             <span style={{
               display: 'inline-block',
-              background: 'rgba(92,97,53,0.1)',
-              border: '1px solid rgba(92,97,53,0.2)',
+              background: 'rgba(128,125,80,0.1)',
+              border: '1px solid rgba(128,125,80,0.2)',
               borderRadius: '9999px',
               padding: '5px 18px',
               fontSize: '0.75rem', letterSpacing: '0.14em', textTransform: 'uppercase',
@@ -125,7 +123,7 @@ export default async function HomePage() {
         </div>
 
         <div className="hero-scroll" style={{ position: 'absolute', bottom: '2.5rem', left: '50%', transform: 'translateX(-50%)' }}>
-          <div style={{ width: '1.5px', height: '52px', background: 'linear-gradient(to bottom, transparent, rgba(92,97,53,0.35))' }} />
+          <div style={{ width: '1.5px', height: '52px', background: 'linear-gradient(to bottom, transparent, rgba(128,125,80,0.35))' }} />
         </div>
       </section>
 
@@ -133,7 +131,7 @@ export default async function HomePage() {
       <EventsSection upcoming={UPCOMING} past={PAST} />
 
       {/* ─── GALLERY — 3-image slider ─── */}
-      <section id="gallery" className="section" style={{ background: 'rgba(92,97,53,0.03)' }}>
+      <section id="gallery" className="section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <ScrollReveal direction="bottom">
@@ -148,7 +146,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── ABOUT ─── */}
-      <section id="about" className="section" style={{ background: 'rgba(92,97,53,0.05)' }}>
+      <section id="about" className="section">
         <div className="container" style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center' }}>
           <ScrollReveal direction="bottom">
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', color: 'var(--text)', lineHeight: 1.1, marginBottom: '1.25rem' }}>

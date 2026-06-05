@@ -89,7 +89,7 @@ export default async function ContactSection() {
   ] as const;
 
   return (
-    <section id="contact" className="section" style={{ background: 'rgba(92,97,53,0.03)' }}>
+    <section id="contact" className="section">
       <div className="container">
         <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
           <ScrollReveal direction="bottom">
