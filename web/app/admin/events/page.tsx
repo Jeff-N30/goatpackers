@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Check } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, X, Check, Upload, ImageIcon, Users } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase-admin';
 import { adminOp } from '@/lib/admin-api';
 import type { HikingEvent, Difficulty } from '@/lib/types';
 
 type Tab = 'upcoming' | 'past';
+type Participant = { id: string; event_id: string; name: string; created_at: string };
 
 const EMPTY_FORM = {
   title: '', description: '', date: '', location: '',
@@ -26,6 +27,15 @@ export default function AdminEventsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [uploadingImg, setUploadingImg] = useState(false);
+
+  // Participants management
+  const [partEventId, setPartEventId] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [loadingPart, setLoadingPart] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [savingPart, setSavingPart] = useState(false);
+  const [editingPart, setEditingPart] = useState<{ id: string; name: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -91,6 +101,61 @@ export default function AdminEventsPage() {
     load();
   };
 
+  const partEvent = events.find(e => e.id === partEventId);
+
+  const loadParticipants = async (eventId: string) => {
+    setLoadingPart(true);
+    const { data } = await supabase.from('participants').select('*').eq('event_id', eventId).order('created_at', { ascending: true });
+    setParticipants(data ?? []);
+    setLoadingPart(false);
+  };
+
+  const openParticipants = (ev: HikingEvent) => {
+    setPartEventId(ev.id);
+    setNewName('');
+    setEditingPart(null);
+    loadParticipants(ev.id);
+  };
+
+  const addParticipant = async () => {
+    if (!newName.trim() || !partEventId) return;
+    setSavingPart(true);
+    await supabase.from('participants').insert({ event_id: partEventId, name: newName.trim() });
+    await supabase.from('events').update({ current_participants: participants.length + 1 }).eq('id', partEventId);
+    setNewName('');
+    await loadParticipants(partEventId);
+    load();
+    setSavingPart(false);
+  };
+
+  const removeParticipant = async (id: string) => {
+    if (!partEventId) return;
+    await supabase.from('participants').delete().eq('id', id);
+    const next = Math.max(0, participants.length - 1);
+    await supabase.from('events').update({ current_participants: next }).eq('id', partEventId);
+    await loadParticipants(partEventId);
+    load();
+  };
+
+  const savePartEdit = async () => {
+    if (!editingPart?.name.trim()) return;
+    await supabase.from('participants').update({ name: editingPart.name.trim() }).eq('id', editingPart.id);
+    setEditingPart(null);
+    if (partEventId) loadParticipants(partEventId);
+  };
+
+  const uploadEventImage = async (file: File) => {
+    setUploadingImg(true);
+    const ext = file.name.split('.').pop();
+    const filename = `events/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from('gallery').upload(filename, file, { cacheControl: '3600', upsert: false });
+    if (!error) {
+      const { data } = supabase.storage.from('gallery').getPublicUrl(filename);
+      setForm(f => ({ ...f, image_url: data.publicUrl }));
+    }
+    setUploadingImg(false);
+  };
+
   return (
     <div className={`admin-page${mounted ? ' admin-page--visible' : ''}`} style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
@@ -145,6 +210,7 @@ export default function AdminEventsPage() {
                   <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <IconBtn onClick={() => openEdit(ev)} title="Edit"><Pencil size={14} /></IconBtn>
+                      <IconBtn onClick={() => openParticipants(ev)} title="Manage participants"><Users size={14} /></IconBtn>
                       <IconBtn onClick={() => toggleType(ev)} title={ev.type === 'upcoming' ? 'Mark as past' : 'Mark as upcoming'}>
                         {ev.type === 'upcoming' ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                       </IconBtn>
@@ -201,8 +267,13 @@ export default function AdminEventsPage() {
                 <input className="input" type="number" min={0} value={form.elevation_gain_m} onChange={e => setForm(f => ({ ...f, elevation_gain_m: e.target.value }))} />
               </FormField>
             </FormRow>
-            <FormField label="Image URL">
-              <input className="input" type="url" value={form.image_url} onChange={e => setForm(f => ({ ...f, image_url: e.target.value }))} placeholder="https://..." />
+            <FormField label="Event Image">
+              <ImageDropZone
+                imageUrl={form.image_url}
+                uploading={uploadingImg}
+                onFile={uploadEventImage}
+                onClear={() => setForm(f => ({ ...f, image_url: '' }))}
+              />
             </FormField>
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
               <button type="button" className="btn btn-outline" onClick={() => setModalOpen(false)}>Cancel</button>
@@ -223,6 +294,76 @@ export default function AdminEventsPage() {
             <button className="btn btn-outline" onClick={() => setDeleteId(null)}>Cancel</button>
             <button className="btn btn-primary admin-btn" style={{ background: '#c0392b' }} onClick={() => handleDelete(deleteId)}>
               <Trash2 size={14} /> Delete
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {partEventId && (
+        <Modal
+          title="Participants"
+          onClose={() => { setPartEventId(null); setEditingPart(null); setNewName(''); }}
+        >
+          {/* Header info */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>{partEvent?.title}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {participants.length} registered
+              {partEvent?.max_participants ? ` / ${partEvent.max_participants} spots` : ''}
+            </div>
+          </div>
+
+          {/* Participant list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '1.25rem', maxHeight: '260px', overflowY: 'auto' }}>
+            {loadingPart ? (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.5rem 0' }}>Loading…</div>
+            ) : participants.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', padding: '0.5rem 0' }}>No participants yet.</div>
+            ) : participants.map((p, i) => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: 'rgba(128,125,80,0.05)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', minWidth: '20px' }}>{i + 1}.</span>
+                {editingPart?.id === p.id ? (
+                  <>
+                    <input
+                      className="input"
+                      style={{ flex: 1, padding: '4px 8px', fontSize: '0.875rem' }}
+                      value={editingPart.name}
+                      onChange={e => setEditingPart(ep => ep ? { ...ep, name: e.target.value } : ep)}
+                      onKeyDown={e => { if (e.key === 'Enter') savePartEdit(); if (e.key === 'Escape') setEditingPart(null); }}
+                      autoFocus
+                    />
+                    <button type="button" onClick={savePartEdit} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2e7d32', padding: '2px' }}><Check size={14} /></button>
+                    <button type="button" onClick={() => setEditingPart(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '2px' }}><X size={14} /></button>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ flex: 1, fontSize: '0.875rem', color: 'var(--text)' }}>{p.name}</span>
+                    <button type="button" onClick={() => setEditingPart({ id: p.id, name: p.name })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '2px' }}><Pencil size={13} /></button>
+                    <button type="button" onClick={() => removeParticipant(p.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c0392b', padding: '2px' }}><Trash2 size={13} /></button>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Add new */}
+          <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+            <input
+              className="input"
+              placeholder="Participant name"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addParticipant(); } }}
+              style={{ flex: 1 }}
+            />
+            <button
+              type="button"
+              className="btn btn-primary admin-btn"
+              style={{ fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+              onClick={addParticipant}
+              disabled={savingPart || !newName.trim()}
+            >
+              {savingPart ? '…' : <><Plus size={14} /> Add</>}
             </button>
           </div>
         </Modal>
@@ -276,6 +417,80 @@ function SkeletonRows({ rows }: { rows: number }) {
           <div className="admin-skeleton" style={{ height: '18px', width: '60px', borderRadius: '6px' }} />
         </div>
       ))}
+    </div>
+  );
+}
+
+function ImageDropZone({ imageUrl, uploading, onFile, onClear }: {
+  imageUrl: string;
+  uploading: boolean;
+  onFile: (file: File) => void;
+  onClear: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) onFile(file);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onFile(file);
+    e.target.value = '';
+  };
+
+  if (imageUrl) {
+    return (
+      <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)', height: '140px' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={imageUrl} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <button
+          type="button"
+          onClick={onClear}
+          style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(17,17,8,0.65)', border: 'none', borderRadius: '6px', padding: '4px 6px', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center' }}
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+      onClick={() => inputRef.current?.click()}
+      style={{
+        border: `2px dashed ${dragOver ? 'var(--primary)' : 'var(--border)'}`,
+        borderRadius: '10px',
+        padding: '1.75rem 1rem',
+        textAlign: 'center',
+        cursor: 'pointer',
+        background: dragOver ? 'rgba(128,125,80,0.06)' : 'transparent',
+        transition: 'border-color 150ms ease, background 150ms ease',
+      }}
+    >
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleChange} />
+      {uploading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+          <div className="admin-spinner" />
+          <span style={{ fontSize: '0.8rem' }}>Uploading…</span>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', pointerEvents: 'none' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Upload size={18} style={{ color: 'var(--primary)' }} />
+            <ImageIcon size={18} style={{ color: 'var(--primary)' }} />
+          </div>
+          <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Drop image here or <span style={{ color: 'var(--primary)', textDecoration: 'underline' }}>browse</span></span>
+          <span style={{ fontSize: '0.72rem' }}>PNG, JPG, WEBP</span>
+        </div>
+      )}
     </div>
   );
 }
