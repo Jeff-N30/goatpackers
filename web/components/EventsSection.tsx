@@ -52,11 +52,11 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
           background: 'var(--glass-bg)',
           border: '1px solid var(--glass-border)',
           borderRadius: '16px',
+          overflow: 'hidden',
           backdropFilter: 'blur(40px) saturate(200%)',
           WebkitBackdropFilter: 'blur(40px) saturate(200%)',
           boxShadow: '0 32px 80px -20px rgba(17,17,8,0.45)',
-          width: '100%', maxWidth: '520px', maxHeight: '88vh',
-          overflowY: 'auto',
+          width: '100%', maxWidth: '520px',
           transform: open ? 'scale(1) translateY(0)' : 'scale(0.93) translateY(20px)',
           opacity: open ? 1 : 0,
           transition: open
@@ -66,11 +66,11 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
       >
         {/* Header image / gradient */}
         <div style={{
-          height: '200px',
+          height: '185px',
           background: event.image_url
             ? `url(${event.image_url}) center/cover`
-            : 'linear-gradient(135deg, #4a4e28 0%, #808550 100%)',
-          position: 'relative', borderRadius: '16px 16px 0 0', flexShrink: 0,
+            : 'linear-gradient(135deg, #6a6840 0%, #807D50 100%)',
+          position: 'relative', flexShrink: 0,
         }}>
           <div style={{ position: 'absolute', top: '14px', left: '14px' }}>
             <span className={`badge ${DIFFICULTY_CLASS[event.difficulty] ?? 'badge-moderate'}`}>{event.difficulty}</span>
@@ -120,7 +120,7 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
           <div style={{
             display: 'flex', flexDirection: 'column', gap: '0.65rem',
             marginBottom: '1.75rem', padding: '1rem 1.125rem',
-            background: 'rgba(92,97,53,0.07)', borderRadius: '16px',
+            background: 'rgba(128,125,80,0.07)', borderRadius: '12px',
           }}>
             <MetaRow icon={<Calendar size={15} />} text={formatDate(event.date)} />
             <MetaRow icon={<MapPin size={15} />} text={event.location} />
@@ -143,7 +143,7 @@ function EventModal({ event, open, onClose }: { event: HikingEvent; open: boolea
           ) : (
             <div style={{
               padding: '0.875rem 1rem', borderRadius: '14px',
-              background: 'rgba(92,97,53,0.08)', textAlign: 'center',
+              background: 'rgba(128,125,80,0.08)', textAlign: 'center',
               fontSize: '0.875rem', color: 'var(--text-muted)', fontWeight: 600,
             }}>
               ✓ This adventure has concluded
@@ -168,7 +168,7 @@ function CompactCard({ event, onOpen, past = false }: { event: HikingEvent; onOp
         borderRadius: '12px',
         backdropFilter: 'blur(16px) saturate(140%)',
         WebkitBackdropFilter: 'blur(16px) saturate(140%)',
-        boxShadow: '0 2px 12px -6px rgba(92,97,53,0.10)',
+        boxShadow: '0 2px 12px -6px rgba(128,125,80,0.10)',
         overflow: 'hidden', cursor: 'pointer', width: '100%',
         textAlign: 'left', height: '100%',
         opacity: past ? 0.82 : 1,
@@ -177,14 +177,14 @@ function CompactCard({ event, onOpen, past = false }: { event: HikingEvent; onOp
       onMouseEnter={e => {
         Object.assign((e.currentTarget as HTMLElement).style, {
           transform: 'translateY(-3px)',
-          boxShadow: '0 12px 32px -8px rgba(92,97,53,0.20)',
+          boxShadow: '0 12px 32px -8px rgba(128,125,80,0.20)',
           opacity: '1',
         });
       }}
       onMouseLeave={e => {
         Object.assign((e.currentTarget as HTMLElement).style, {
           transform: '',
-          boxShadow: '0 2px 12px -6px rgba(92,97,53,0.10)',
+          boxShadow: '0 2px 12px -6px rgba(128,125,80,0.10)',
           opacity: past ? '0.82' : '1',
           transition: `transform 200ms ${EASE}, box-shadow 200ms ease, opacity 180ms ease`,
         });
@@ -205,7 +205,7 @@ function CompactCard({ event, onOpen, past = false }: { event: HikingEvent; onOp
         height: '3px', flexShrink: 0,
         background: past
           ? 'linear-gradient(90deg, #808550, #e0d8b5)'
-          : 'linear-gradient(90deg, #5c6135, #808550)',
+          : 'linear-gradient(90deg, #807D50, #808550)',
       }} />
 
       <div style={{ padding: '1.125rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
