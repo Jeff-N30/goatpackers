@@ -147,9 +147,11 @@ export default function AdminEventsPage() {
   const uploadEventImage = async (file: File) => {
     setUploadingImg(true);
     const ext = file.name.split('.').pop();
-    const filename = `events/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage.from('gallery').upload(filename, file, { cacheControl: '3600', upsert: false });
-    if (!error) {
+    if (error) {
+      alert(`Upload failed: ${error.message}`);
+    } else {
       const { data } = supabase.storage.from('gallery').getPublicUrl(filename);
       setForm(f => ({ ...f, image_url: data.publicUrl }));
     }
