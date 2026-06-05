@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+const EASE_OUT    = 'cubic-bezier(0.22, 1, 0.36, 1)';   // entering/exiting elements
+const EASE_IN_OUT = 'cubic-bezier(0.77, 0, 0.175, 1)';  // moving on-screen — Emil: carousel slides
 const FALLBACK = [
   'linear-gradient(135deg, #808550 0%, #a0a668 100%)',
   'linear-gradient(135deg, #4a4e28 0%, #6b7040 100%)',
@@ -120,7 +121,7 @@ export default function GalleryCarousel({ images }: { images: CarouselImage[] })
                 width: '100%', maxWidth: '760px',
                 transform: zoomOpen ? 'scale(1) translateY(0)' : 'scale(0.92) translateY(18px)',
                 opacity: zoomOpen ? 1 : 0,
-                transition: `transform 280ms ${EASE}, opacity 200ms ease-out`,
+                transition: `transform 280ms ${EASE_OUT}, opacity 200ms ease`,
               }}
             >
               {/* Image */}
@@ -173,36 +174,53 @@ export default function GalleryCarousel({ images }: { images: CarouselImage[] })
         );
       })()}
 
-      {/* ── Sliding track ── */}
-      <div style={{ overflow: 'hidden', borderRadius: '14px' }}>
+      {/* ── Sliding track — 3-per-view, 1-at-a-time ── */}
+      <div style={{ overflow: 'hidden', borderRadius: '10px' }}>
         <div style={{
           display: 'flex',
-          width: `${T * 100}%`,
+          width: `${T * 100 / 3}%`,
           transform: `translateX(-${trackIdx * 100 / T}%)`,
-          transition: animated ? `transform 520ms ${EASE}` : 'none',
+          transition: animated ? `transform 460ms ${EASE_IN_OUT}` : 'none',
         }}>
           {tripled.map((img, i) => {
             const rIdx = i % n;
             return (
-              <div key={`${img.id}-${i}`} style={{ width: `${100 / T}%`, flexShrink: 0 }}>
+              <div key={`${img.id}-${i}`} style={{ width: `${100 / T}%`, flexShrink: 0, padding: '0 5px' }}>
                 <button
                   onClick={() => openZoom(rIdx)}
                   style={{
                     all: 'unset', display: 'block', cursor: 'pointer', width: '100%',
-                    aspectRatio: '16/9', overflow: 'hidden', position: 'relative',
+                    aspectRatio: '4/3', borderRadius: '10px', overflow: 'hidden',
                     background: img.image_url
                       ? `url(${img.image_url}) center/cover no-repeat`
                       : FALLBACK[rIdx % FALLBACK.length],
+                    position: 'relative',
+                    boxShadow: '0 4px 16px -6px rgba(128,125,80,0.16)',
+                    transition: `box-shadow 200ms ease`,
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 32px -8px rgba(128,125,80,0.28)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px -6px rgba(128,125,80,0.16)';
+                  }}
+                  onMouseDown={e => {
+                    (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)';
+                    (e.currentTarget as HTMLElement).style.transition = 'transform 100ms ease, box-shadow 200ms ease';
+                  }}
+                  onMouseUp={e => {
+                    (e.currentTarget as HTMLElement).style.transform = '';
+                    (e.currentTarget as HTMLElement).style.transition = 'box-shadow 200ms ease';
                   }}
                 >
                   {img.caption && (
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
-                      padding: '2.5rem 1.25rem 1rem',
-                      background: 'linear-gradient(to top, rgba(17,17,8,0.7) 0%, transparent 100%)',
-                      color: 'rgba(224,216,181,0.95)',
+                      padding: '1.5rem 0.875rem 0.625rem',
+                      background: 'linear-gradient(to top, rgba(17,17,8,0.65) 0%, transparent 100%)',
+                      color: 'rgba(224,216,181,0.9)',
                       fontFamily: 'var(--font-display)',
-                      fontSize: '0.925rem',
+                      fontSize: '0.8rem',
                     }}>
                       {img.caption}
                     </div>
