@@ -47,7 +47,11 @@ export const metadata: Metadata = {
   creator: 'Goatpackers Lebanon',
   publisher: 'Goatpackers Lebanon',
   alternates: { canonical: '/' },
-  icons: { icon: '/goatpackers_logo_dark.png' },
+  icons: {
+    icon: [{ url: '/favicon.ico', sizes: 'any', type: 'image/x-icon' }],
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
