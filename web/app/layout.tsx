@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   verification: { google: 'xHPddgeiUlrX8i11BdZd0OudA0sDC-Z3Hfnf-JpnPAA' },
   title: {
     default: 'Goatpackers Lebanon',
-    template: '%s | Goatpackers Lebanon',
+    template: '%s | goatpackers Lebanon',
   },
   description:
-    "Goatpackers is Lebanon's premier hiking club — exploring mountain trails, cedar forests, canyon walks, and alpine peaks together. Join our community for weekly group hikes across the Lebanese mountains.",
+    "Goatpackers is the only club in Lebanon to pack with goats. Specialized for young outdoor lovers. We organize hikes, treks, camps, and all sorts of outdoor activities.",
   keywords: [
     'hiking Lebanon',
     'hiking club Lebanon',
