@@ -82,7 +82,7 @@ export default async function HomePage() {
         minHeight: '100vh',
         background: 'var(--bg)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        position: 'relative', padding: '120px 24px 100px',
+        position: 'relative', padding: '156px 24px 96px',
       }}>
         <div style={{ textAlign: 'center', maxWidth: '780px', position: 'relative', zIndex: 1 }}>
           <div className="hero-badge" style={{ marginBottom: '1.25rem' }}>
