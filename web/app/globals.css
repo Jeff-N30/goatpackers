@@ -339,7 +339,7 @@ body {
     transition: transform 200ms var(--ease-out), opacity 150ms ease;
   }
   /* Hero top offset on mobile */
-  .hero-mobile-offset { padding-top: 80px !important; }
+  .hero-mobile-offset { padding-top: 124px !important; }
 }
 
 /* ─── ADMIN — mobile layout ─── */
